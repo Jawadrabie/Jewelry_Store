@@ -16,30 +16,29 @@ class FavoritesScreen extends StatelessWidget {
       body: favorites.isEmpty
           ? const Center(child: Text('لا توجد منتجات مضافة.'))
           : ListView.separated(
-        itemCount: favorites.length,
-        separatorBuilder: (_, __) => const Divider(),
-        itemBuilder: (context, index) {
-          final product = favorites[index];
-          return ListTile(
-            leading: Image.network(product.image, width: 60),
-            title: Text(product.title),
-            subtitle: Text('\$${product.price.toStringAsFixed(2)}'),
-            trailing: IconButton(
-              icon: const Icon(Icons.favorite, color: Colors.red),
-              onPressed: () {
-                context.read<FavoriteCubit>().remove(product);
+              itemCount: favorites.length,
+              separatorBuilder: (_, __) => const Divider(),
+              itemBuilder: (context, index) {
+                final product = favorites[index];
+                return ListTile(
+                  leading: Image.network(product.image, width: 60),
+                  title: Text(product.title),
+                  subtitle: Text('\$${product.price.toStringAsFixed(2)}'),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.favorite, color: Colors.red),
+                    onPressed: () {
+                      context.read<FavoriteCubit>().remove(product);
+                    },
+                  ),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ProductDetailsScreen(product: product),
+                    ),
+                  ),
+                );
               },
             ),
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) =>
-                    ProductDetailsScreen(product: product),
-              ),
-            ),
-          );
-        },
-      ),
     );
   }
 }
