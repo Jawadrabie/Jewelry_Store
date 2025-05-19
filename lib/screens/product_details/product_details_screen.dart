@@ -96,7 +96,7 @@ class ProductDetailsScreen extends StatelessWidget {
                     },
                     icon: const Icon(Icons.shopping_cart),
                     label: Text(
-                        isInCart ? 'إزالة من السلة' : 'أضف إلى السلة'),
+                        isInCart ? 'إزالة من السلة' : 'أضف إلى السلة',style: TextStyle(color: Colors.black),),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -113,7 +113,7 @@ class ProductDetailsScreen extends StatelessWidget {
                     icon: const Icon(Icons.favorite),
                     label: Text(isFavorite
                         ? 'إزالة من المفضلة'
-                        : 'أضف إلى المفضلة'),
+                        : 'أضف إلى المفضلة',style: TextStyle(color: Colors.black),),
                   ),
                 ),
               ],

@@ -1,9 +1,8 @@
+// lib/presentation/screens/categories_screen.dart
 import 'package:flutter/material.dart';
 import '../../data/models/category_model.dart';
-import '../../widgets/category_tile.dart';
+import 'category_products_screen.dart';
 
-
-// في ملف presentation/screens/categories_screen.dart
 class CategoriesScreen extends StatelessWidget {
   final List<CategoryModel> categories;
 
@@ -34,7 +33,12 @@ class CategoriesScreen extends StatelessWidget {
             elevation: 2,
             child: InkWell(
               onTap: () {
-                // يمكنك إضافة التنقل لمنتجات القسم هنا
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => CategoryProductsScreen(category: category),
+                  ),
+                );
               },
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,

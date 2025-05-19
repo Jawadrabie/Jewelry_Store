@@ -8,6 +8,7 @@ import '../../data/models/category_model.dart';
 import '../../data/models/product_model.dart';
 import '../cart/cart_screen.dart';
 import '../categories/categories_screen.dart';
+import '../categories/category_products_screen.dart';
 import '../product_details/product_details_screen.dart';
 
 class HomeContent extends StatelessWidget {
@@ -19,9 +20,8 @@ class HomeContent extends StatelessWidget {
       create: (_) => HomeCubit(RepositoryProvider.of(context))..loadHomeData(),
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('متجر جواد'),
+          title: const Text('Jewelry Store'),
           actions: [
-            IconButton(onPressed: () {}, icon: Icon(Icons.search)),
             IconButton(
               onPressed: () {
                 Navigator.push(
@@ -31,6 +31,7 @@ class HomeContent extends StatelessWidget {
               },
               icon: const Icon(Icons.shopping_cart),
             ),
+            IconButton(onPressed: () {}, icon: Icon(Icons.search)),
           ],
         ),
         body: BlocBuilder<HomeCubit, HomeState>(
@@ -75,22 +76,34 @@ class HomeContent extends StatelessWidget {
                               scrollDirection: Axis.horizontal,
                               itemCount: categories.length,
                               itemBuilder: (context, index) {
-                                return Container(
-                                    width: 100,
-                                    margin: const EdgeInsets.only(right: 10),
-                                    decoration: BoxDecoration(
-                                      color: Colors.teal.shade50,
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(categories[index].icon, size: 30),
-                                        const SizedBox(height: 8),
-                                        Text(categories[index].name),
-                                      ],
-                                    ));
+                                return GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => CategoryProductsScreen(
+                                            category: categories[index]),
+                                      ),
+                                    );
+                                  },
+                                  child: Container(
+                                      width: 100,
+                                      margin: const EdgeInsets.only(right: 10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.teal[400],
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(categories[index].icon,
+                                              size: 30),
+                                          const SizedBox(height: 8),
+                                          Text(categories[index].name),
+                                        ],
+                                      )),
+                                );
                               },
                             ),
                           ),
