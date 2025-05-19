@@ -4,7 +4,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../cubit/home/home_cubit.dart';
+import '../../data/models/category_model.dart';
 import '../../data/models/product_model.dart';
+import '../cart/cart_screen.dart';
+import '../categories/categories_screen.dart';
 import '../product_details/product_details_screen.dart';
 
 class HomeContent extends StatelessWidget {
@@ -17,14 +20,26 @@ class HomeContent extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('متجر جواد'),
-          actions: [IconButton(onPressed: () {}, icon: Icon(Icons.search))],
+          actions: [
+            IconButton(onPressed: () {}, icon: Icon(Icons.search)),
+            IconButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CartScreen()),
+                );
+              },
+              icon: const Icon(Icons.shopping_cart),
+            ),
+          ],
         ),
         body: BlocBuilder<HomeCubit, HomeState>(
           builder: (context, state) {
             if (state is HomeLoading) {
               return const Center(child: CircularProgressIndicator());
             } else if (state is HomeLoaded) {
-              final categories = state.categories;
+              final categories =
+                  CategoryModel.sampleCategories; // استخدام القائمة الجديدة
               final products = state.products;
 
               return SingleChildScrollView(
@@ -33,28 +48,65 @@ class HomeContent extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text('الأقسام', style: TextStyle(fontSize: 18)),
-
+                        TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    CategoriesScreen(categories: categories),
+                              ),
+                            );
+                          },
+                          child: const Text('عرض الكل'),
+                        )
                       ],
                     ),
                     const SizedBox(height: 10),
                     SizedBox(
                       height: 100,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: categories.length,
-                        itemBuilder: (context, index) {
-                          return Container(
-                            width: 100,
-                            margin: const EdgeInsets.only(right: 10),
-                            decoration: BoxDecoration(
-                              color: Colors.teal.shade50,
-                              borderRadius: BorderRadius.circular(16),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: categories.length,
+                              itemBuilder: (context, index) {
+                                return Container(
+                                    width: 100,
+                                    margin: const EdgeInsets.only(right: 10),
+                                    decoration: BoxDecoration(
+                                      color: Colors.teal.shade50,
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(categories[index].icon, size: 30),
+                                        const SizedBox(height: 8),
+                                        Text(categories[index].name),
+                                      ],
+                                    ));
+                              },
                             ),
-                            child: Center(child: Text(categories[index])),
-                          );
-                        },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.arrow_forward),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      CategoriesScreen(categories: categories),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -65,7 +117,7 @@ class HomeContent extends StatelessWidget {
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: products.length,
                       gridDelegate:
-                      const SliverGridDelegateWithFixedCrossAxisCount(
+                          const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
                         childAspectRatio: 0.65,
                         crossAxisSpacing: 10,
@@ -78,7 +130,8 @@ class HomeContent extends StatelessWidget {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) => ProductDetailsScreen(product: product),
+                                builder: (_) =>
+                                    ProductDetailsScreen(product: product),
                               ),
                             );
                           },
@@ -108,7 +161,8 @@ class HomeContent extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 8),
                                 Text(product.title,
-                                    maxLines: 1, overflow: TextOverflow.ellipsis),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis),
                                 Text('\$${product.price}',
                                     style: TextStyle(color: Colors.teal)),
                               ],
