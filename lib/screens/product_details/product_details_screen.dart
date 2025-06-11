@@ -13,11 +13,12 @@ class ProductDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isFavorite =
-    context.watch<FavoriteCubit>().state.contains(product);
-    final isInCart =
-    context.watch<CartCubit>().state.contains(product);
-
+    final isFavorite = context.watch<FavoriteCubit>().state.contains(product);
+    final isInCart = context
+        .watch<CartCubit>()
+        .state
+        .any((p) => p.productId == product.productId);
+    //
     return Scaffold(
       appBar: AppBar(
         title: const Text('تفاصيل المنتج'),
@@ -27,21 +28,19 @@ class ProductDetailsScreen extends StatelessWidget {
         child: Column(
           children: [
             // ===== صورة المنتج =====
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: CachedNetworkImage(
-                imageUrl: product.image,
-                height: 250,
-                width: double.infinity,
-                fit: BoxFit.contain,
-              ),
+            CachedNetworkImage(
+              imageUrl: product.productFile,
+              height: 250,
+              fit: BoxFit.contain,
+              placeholder: (_, __) => const CircularProgressIndicator(),
+              errorWidget: (_, __, ___) => const Icon(Icons.error),
             ),
 
             const SizedBox(height: 16),
 
             // ===== العنوان =====
             Text(
-              product.title,
+              product.name,
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -64,10 +63,8 @@ class ProductDetailsScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'القسم: ${product.category}',
-                  style: const TextStyle(color: Colors.grey),
-                ),
+                Text('القسم: ${product.categoryId}',
+                    style: const TextStyle(color: Colors.grey)),
                 Text(
                   '\$${product.price.toStringAsFixed(2)}',
                   style: const TextStyle(
@@ -86,34 +83,21 @@ class ProductDetailsScreen extends StatelessWidget {
               children: [
                 Expanded(
                   child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: isInCart
-                          ? Colors.grey
-                          : Theme.of(context).colorScheme.primary,
-                    ),
-                    onPressed: () {
-                      context.read<CartCubit>().toggle(product);
-                    },
                     icon: const Icon(Icons.shopping_cart),
-                    label: Text(
-                        isInCart ? 'إزالة من السلة' : 'أضف إلى السلة',style: TextStyle(color: Colors.black),),
+                    label: Text(isInCart ? 'إزالة من السلة' : 'أضف إلى السلة'),
+                    onPressed: () => context.read<CartCubit>().toggle(product),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: isInCart ? Colors.grey : Colors.teal),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: isFavorite
-                          ? Colors.red
-                          : Theme.of(context).colorScheme.secondary,
-                    ),
-                    onPressed: () {
-                      context.read<FavoriteCubit>().toggle(product);
-                    },
                     icon: const Icon(Icons.favorite),
-                    label: Text(isFavorite
-                        ? 'إزالة من المفضلة'
-                        : 'أضف إلى المفضلة',style: TextStyle(color: Colors.black),),
+                    label: Text(isFavorite ? 'إزالة من المفضلة' : 'أضف إلى المفضلة'),
+                    onPressed: () => context.read<FavoriteCubit>().toggle(product),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: isFavorite ? Colors.red : Colors.tealAccent),
                   ),
                 ),
               ],

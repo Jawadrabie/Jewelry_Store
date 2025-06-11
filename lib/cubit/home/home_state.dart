@@ -1,27 +1,25 @@
-part of 'home_cubit.dart';
+// lib/presentation/cubit/home/home_state.dart
 
-abstract class HomeState extends Equatable {
-  @override
-  List<Object> get props => [];
-}
+
+import 'package:fake_store_app/data/models/product_model.dart';
+import '../../data/models/category_model.dart';
+
+abstract class HomeState {}
 
 class HomeLoading extends HomeState {}
 
 class HomeLoaded extends HomeState {
-  final List<String> categories;
+  final List<CategoryModel> categories;
   final List<ProductModel> products;
 
-  HomeLoaded({required this.categories, required this.products});
-
-  @override
-  List<Object> get props => [categories, products];
+  HomeLoaded({
+    required this.categories,
+    required this.products,
+  });
 }
 
 class HomeError extends HomeState {
   final String message;
-
   HomeError(this.message);
-
-  @override
-  List<Object> get props => [message];
 }
+

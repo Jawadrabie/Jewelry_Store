@@ -1,15 +1,16 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../models/category_model.dart';
 import '../models/product_model.dart';
 
 class StoreRepository {
-  final String baseUrl = 'https://fakestoreapi.com';
+  static const String baseUrl = 'https://jewelrystore-production.up.railway.app/api';
 
-  Future<List<String>> getCategories() async {
-    final response = await http.get(Uri.parse('$baseUrl/products/categories'));
+  Future<List<CategoryModel>> getCategories() async {
+    final response = await http.get(Uri.parse('$baseUrl/categories'));
     if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      return data.map((e) => e.toString()).toList();
+      final List<dynamic> data = json.decode(response.body)['data'];
+      return data.map((json) => CategoryModel.fromJson(json)).toList();
     } else {
       throw Exception('فشل تحميل الأقسام');
     }
@@ -18,22 +19,20 @@ class StoreRepository {
   Future<List<ProductModel>> getAllProducts() async {
     final response = await http.get(Uri.parse('$baseUrl/products'));
     if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      return data.map((e) => ProductModel.fromJson(e)).toList();
+      final List<dynamic> data = json.decode(response.body)['data'];
+      return data.map((json) => ProductModel.fromJson(json)).toList();
     } else {
-      throw Exception('فشل تحميل المنتجات');
+      throw Exception('فشل تحميل جميع المنتجات');
     }
   }
 
-  Future<List<ProductModel>> fetchProductsByCategory(
-      String categoryName) async {
-    final response = await http.get(
-        Uri.parse('https://fakestoreapi.com/products/category/$categoryName'));
+  Future<List<ProductModel>> fetchProductsByCategory(int categoryId) async {
+    final response = await http.get(Uri.parse('$baseUrl/products/category/$categoryId'));
     if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
+      final List<dynamic> data = json.decode(response.body)['data'];
       return data.map((json) => ProductModel.fromJson(json)).toList();
     } else {
-      throw Exception('Failed to load products for category $categoryName');
+      throw Exception('فشل تحميل منتجات القسم $categoryId (Status: ${response.statusCode})');
     }
   }
 }

@@ -1,4 +1,5 @@
 // lib/presentation/screens/categories_screen.dart
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../../data/models/category_model.dart';
 import 'category_products_screen.dart';
@@ -29,6 +30,7 @@ class CategoriesScreen extends StatelessWidget {
         itemCount: categories.length,
         itemBuilder: (context, index) {
           final category = categories[index];
+          //inkwell
           return Card(
             elevation: 2,
             child: InkWell(
@@ -43,9 +45,15 @@ class CategoriesScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(category.icon, size: 40, color: Colors.teal),
-                  const SizedBox(height: 10),
-                  Text(category.name, textAlign: TextAlign.center),
+                  CachedNetworkImage(
+                    imageUrl: categories[index].image,
+                    width: 50,
+                    height: 50,
+                    placeholder: (_, __) => const CircularProgressIndicator(),
+                    errorWidget: (_, __, ___) => const Icon(Icons.error),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(categories[index].name,textAlign: TextAlign.center),
                 ],
               ),
             ),

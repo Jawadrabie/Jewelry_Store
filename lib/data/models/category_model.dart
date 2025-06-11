@@ -1,19 +1,24 @@
 // في ملف data/models/category_model.dart
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+// models/category_model.dart
 class CategoryModel {
+  final int id;
   final String name;
-  final IconData icon;
+  final String image;
 
-  CategoryModel({required this.name, required this.icon});
+  CategoryModel({
+    required this.id,
+    required this.name,
+    required this.image,
+  });
 
-  // يمكنك تغيير هذه القائمة حسب احتياجاتك
-  static final List<CategoryModel> sampleCategories = [
-    CategoryModel(name: "إلكترونيات", icon: Icons.electrical_services),
-    CategoryModel(name: "ملابس", icon: Icons.checkroom),
-    CategoryModel(name: "أطعمة", icon: Icons.fastfood),
-    CategoryModel(name: "أثاث", icon: Icons.chair),
-    CategoryModel(name: "كتب", icon: Icons.menu_book),
-  ];
+  factory CategoryModel.fromJson(Map<String, dynamic> json) {
+    return CategoryModel(
+      id: json['category_ID'] as int,
+      name: json['name'] as String,
+      image: json['categoryFile'] as String,
+    );
+  }
 }
+

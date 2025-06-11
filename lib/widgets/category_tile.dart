@@ -1,8 +1,8 @@
+// lib/widgets/category_tile.dart
 import 'package:flutter/material.dart';
 import '../data/models/category_model.dart';
 import '../screens/categories/categories_screen.dart';
 
-// في ملف widgets/category_tile.dart
 class CategoryTile extends StatelessWidget {
   final CategoryModel category;
 
@@ -13,13 +13,18 @@ class CategoryTile extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8),
       child: ListTile(
-        leading: Icon(category.icon, size: 30, color: Colors.teal),
+        leading: Image.network(
+          category.image,
+          width: 50,
+          height: 50,
+          fit: BoxFit.cover,
+        ),
         title: Text(category.name),
         onTap: () {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => CategoriesScreen(categories: CategoryModel.sampleCategories),
+              builder: (_) => CategoriesScreen(categories: [category]),
             ),
           );
         },

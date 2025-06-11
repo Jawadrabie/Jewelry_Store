@@ -4,6 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../cubit/home/home_cubit.dart';
+
+//import 'package:screens/cart/cart_screen.dart';
+import '../../cubit/home/home_state.dart';
 import '../../data/models/category_model.dart';
 import '../../data/models/product_model.dart';
 import '../cart/cart_screen.dart';
@@ -16,6 +19,7 @@ class HomeContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     return BlocProvider(
       create: (_) => HomeCubit(RepositoryProvider.of(context))..loadHomeData(),
       child: Scaffold(
@@ -26,7 +30,7 @@ class HomeContent extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const CartScreen()),
+                  MaterialPageRoute(builder: (context) => CartScreen()),
                 );
               },
               icon: const Icon(Icons.shopping_cart),
@@ -37,10 +41,11 @@ class HomeContent extends StatelessWidget {
         body: BlocBuilder<HomeCubit, HomeState>(
           builder: (context, state) {
             if (state is HomeLoading) {
+              print("=================$state");
               return const Center(child: CircularProgressIndicator());
             } else if (state is HomeLoaded) {
-              final categories =
-                  CategoryModel.sampleCategories; // استخدام القائمة الجديدة
+              print("======================");
+              final categories = state.categories; // استخدام البيانات الفعلية
               final products = state.products;
 
               return SingleChildScrollView(
@@ -97,33 +102,44 @@ class HomeContent extends StatelessWidget {
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
                                         children: [
-                                          Icon(categories[index].icon,
-                                              size: 30),
+                                          CachedNetworkImage(
+                                            imageUrl:
+                                                '${categories[index].image}',
+                                            //  imageUrl: categories[index].image,
+                                            width: 40,
+                                            height: 40,
+                                            placeholder: (_, __) =>
+                                                const CircularProgressIndicator(),
+                                            errorWidget: (_, __, ___) =>
+                                                const Icon(Icons.error),
+                                          ),
                                           const SizedBox(height: 8),
-                                          Text(categories[index].name),
+                                          Text(categories[index].name,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis),
                                         ],
                                       )),
                                 );
                               },
                             ),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.arrow_forward),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      CategoriesScreen(categories: categories),
-                                ),
-                              );
-                            },
-                          ),
+                          // IconButton(
+                          //   icon: const Icon(Icons.arrow_forward),
+                          //   onPressed: () {
+                          //     Navigator.push(
+                          //       context,
+                          //       MaterialPageRoute(
+                          //         builder: (_) =>
+                          //             CategoriesScreen(categories: categories),
+                          //       ),
+                          //     );
+                          //   },
+                          // ),
                         ],
                       ),
                     ),
                     const SizedBox(height: 24),
-                    const Text('الأكثر مبيعا', style: TextStyle(fontSize: 18)),
+                    const Text('all prodect', style: TextStyle(fontSize: 18)),
                     const SizedBox(height: 10),
                     GridView.builder(
                       shrinkWrap: true,
@@ -138,6 +154,7 @@ class HomeContent extends StatelessWidget {
                       ),
                       itemBuilder: (context, index) {
                         final product = products[index];
+
                         return GestureDetector(
                           onTap: () {
                             Navigator.push(
@@ -164,8 +181,11 @@ class HomeContent extends StatelessWidget {
                             child: Column(
                               children: [
                                 Expanded(
-                                  child: CachedNetworkImage(
-                                    imageUrl: product.image,
+                                  child:
+                                      //child:Image.network(product.productFile)
+                                      CachedNetworkImage(
+                                    imageUrl: '${product.productFile}',
+                                    // imageUrl: product.productFile,
                                     placeholder: (context, url) =>
                                         CircularProgressIndicator(),
                                     errorWidget: (context, url, error) =>
@@ -173,7 +193,7 @@ class HomeContent extends StatelessWidget {
                                   ),
                                 ),
                                 const SizedBox(height: 8),
-                                Text(product.title,
+                                Text(product.name,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis),
                                 Text('\$${product.price}',
@@ -188,7 +208,8 @@ class HomeContent extends StatelessWidget {
                 ),
               );
             } else if (state is HomeError) {
-              return Center(child: Text('خطأ: ${state.message}'));
+              print('خطأ =: ${state.message}');
+              return Center(child: Text('====خطأ: ${state.message}'));
             } else {
               return const SizedBox();
             }

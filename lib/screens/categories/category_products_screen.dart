@@ -1,4 +1,5 @@
 // lib/presentation/screens/category_products/category_products_screen.dart
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../data/models/category_model.dart';
@@ -13,12 +14,15 @@ class CategoryProductsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final storeRepository = StoreRepository();
+   // final storeRepository = StoreRepository();
+    final repo = RepositoryProvider.of<StoreRepository>(context);
 
       return Scaffold(
       appBar: AppBar(title: Text('منتجات ${category.name}')),
       body: FutureBuilder<List<ProductModel>>(
-        future: storeRepository.fetchProductsByCategory(category.name),
+      //  future: storeRepository.fetchProductsByCategory(category.id!),
+        future: repo.fetchProductsByCategory(category.id),
+
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -66,13 +70,15 @@ class CategoryProductsScreen extends StatelessWidget {
                   child: Column(
                     children: [
                       Expanded(
-                        child: Image.network(
-                          product.image,
-                          errorBuilder: (_, __, ___) => const Icon(Icons.error),
+                        child: CachedNetworkImage(
+                          imageUrl: product.productFile,
+                          fit: BoxFit.contain,
+                          placeholder: (_, __) => const CircularProgressIndicator(),
+                          errorWidget: (_, __, ___) => const Icon(Icons.error),
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Text(product.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+                      Text(product.name, maxLines: 1, overflow: TextOverflow.ellipsis),
                       Text('\$${product.price}', style: const TextStyle(color: Colors.teal)),
                     ],
                   ),

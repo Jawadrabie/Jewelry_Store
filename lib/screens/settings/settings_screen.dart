@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../cubit/theme.dart';
 import '../auth/login_screen.dart';
+import '../auth/login_screen_.dart';
 import '../cart/cart_screen.dart';
 import '../favorites/favorites_screen.dart';
 
@@ -121,7 +122,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 if (userEmail == null) {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                   MaterialPageRoute(builder: (_) => const LoginScreen()),
                   ).then((_) {
                     loadUserData(); // إعادة تحميل البيانات عند الرجوع
                   });
