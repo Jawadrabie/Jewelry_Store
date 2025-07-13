@@ -14,24 +14,24 @@ class CategoryProductsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-   // final storeRepository = StoreRepository();
-    final repo = RepositoryProvider.of<StoreRepository>(context);
+    final storeRepository = RepositoryProvider.of<StoreRepository>(context);
 
-      return Scaffold(
+    return Scaffold(
       appBar: AppBar(title: Text('منتجات ${category.name}')),
       body: FutureBuilder<List<ProductModel>>(
-      //  future: storeRepository.fetchProductsByCategory(category.id!),
-        future: repo.fetchProductsByCategory(category.id),
-
+        future: storeRepository.fetchProductsByCategory(category.id),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
+            print('حدث خطأ+: ${snapshot.error}');
             return Center(child: Text('حدث خطأ: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          } else if (!snapshot.hasData ||
+              snapshot.data == null ||
+              snapshot.data!.isEmpty) {
             return const Center(child: Text('لا توجد منتجات في هذا القسم.'));
           }
-
+          print('snapshot.data: $snapshot.data!');
           final products = snapshot.data!;
 
           return GridView.builder(
@@ -73,13 +73,16 @@ class CategoryProductsScreen extends StatelessWidget {
                         child: CachedNetworkImage(
                           imageUrl: product.productFile,
                           fit: BoxFit.contain,
-                          placeholder: (_, __) => const CircularProgressIndicator(),
+                          placeholder: (_, __) =>
+                              const CircularProgressIndicator(),
                           errorWidget: (_, __, ___) => const Icon(Icons.error),
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Text(product.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-                      Text('\$${product.price}', style: const TextStyle(color: Colors.teal)),
+                      Text(product.name,
+                          maxLines: 1, overflow: TextOverflow.ellipsis),
+                      Text('\$${product.price}',
+                          style: const TextStyle(color: Colors.teal)),
                     ],
                   ),
                 ),

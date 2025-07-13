@@ -5,8 +5,10 @@ class ProductModel {
   final String weight;
   final double price;
   final String productFile;
-  final bool isAvailable;
   final bool isFeatured;
+  final String categoryName;
+  final int quantity;
+  final int smithing;
   final int categoryId;
 
   ProductModel({
@@ -16,36 +18,42 @@ class ProductModel {
     required this.weight,
     required this.price,
     required this.productFile,
-    required this.isAvailable,
     required this.isFeatured,
+    required this.categoryName,
+    required this.quantity,
+    required this.smithing,
     required this.categoryId,
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
     return ProductModel(
-      productId: json['product_id'] as int,
-      name: json['name'] as String,
-      description: json['decription'] as String,
-      weight: json['weight'] as String,
-      price: double.parse(json['price'] as String),
-      productFile: json['ProductFile'] as String,
-      isAvailable: (json['IsAvailable'] as String).toLowerCase() == 'true',
-      isFeatured: (json['isFeatured'] as String).toLowerCase() == 'true',
-      categoryId: json['categoryID'] as int,
+      productId: json['id'] ?? 0,
+      name: json['name'] ?? 'error',
+      description: json['decription'] ?? '',
+      weight: json['weight'] ?? '',
+      price: double.tryParse(json['price']?.toString() ?? '0') ?? 0.0,
+      productFile: json['productFile'] ?? '',
+      isFeatured: (json['isFeatured'] ?? 0) == 1,
+      categoryName: json['category_name'] ?? '',
+      quantity: json['quantity'] ?? 0,
+      smithing: json['smithing'] ?? 0,
+      categoryId: json['categoryid'] ?? 0,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'product_id': productId,
+      'id': productId,
       'name': name,
       'decription': description,
       'weight': weight,
       'price': price.toString(),
-      'ProductFile': productFile,
-      'IsAvailable': isAvailable.toString(),
-      'isFeatured': isFeatured.toString(),
-      'categoryID': categoryId,
+      'productFile': productFile,
+      'isFeatured': isFeatured ? 1 : 0,
+      'category_name': categoryName,
+      'quantity': quantity,
+      'smithing': smithing,
+      'categoryid': categoryId,
     };
   }
 }

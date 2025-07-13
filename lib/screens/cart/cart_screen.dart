@@ -2,7 +2,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../cubit/cart/cart_cubit.dart';
-import '../../data/models/product_model.dart';
 import '../product_details/product_details_screen.dart';
 
 class CartScreen extends StatelessWidget {

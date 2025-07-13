@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../../cubit/theme.dart';
-import '../auth/login_screen.dart';
+import '../../cubit/auth/auth_cubit.dart';
+import '../../cubit/theme/theme.dart';
 import '../auth/login_screen_.dart';
 import '../cart/cart_screen.dart';
 import '../favorites/favorites_screen.dart';
@@ -33,105 +32,133 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
-  Future<void> logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('user_email');
-    await prefs.remove('user_name');
-    setState(() {
-      userEmail = null;
-      userName = null;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDark = context.watch<ThemeCubit>().state == ThemeMode.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('الإعدادات')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            // ✅ عرض اسم المستخدم والبريد إذا كان مسجل دخول
-            if (userEmail != null && userName != null)
-              Container(
-                padding: const EdgeInsets.all(12),
-                margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                  color: Colors.teal.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.person),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+    return BlocListener<AuthCubit, AuthState>(
+      listener: (context, state) {
+        if (state is AuthLoggedOut) {
+          setState(() {
+            userEmail = null;
+            userName = null;
+          });
+        } else if (state is AuthFailure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Logout failed: ${state.message}')),
+          );
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        appBar: AppBar(title: const Text('Settings')),
+        body: BlocBuilder<AuthCubit, AuthState>(
+          builder: (context, state) {
+            final isLoading = state is AuthLoading;
+
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  if (userEmail != null && userName != null)
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      margin: const EdgeInsets.only(bottom: 24),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
                         children: [
-                          Text('مرحباً، $userName', style: const TextStyle(fontSize: 16)),
-                          Text(userEmail!, style: const TextStyle(fontSize: 14, color: Colors.grey)),
+                          Icon(Icons.person,
+                              size: 40, color: colorScheme.primary),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Welcome, $userName',
+                                  style: textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                Text(
+                                  userEmail!,
+                                  style: textTheme.bodySmall?.copyWith(
+                                    color:
+                                        colorScheme.onSurface.withOpacity(0.6),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                  ],
-                ),
+                  SettingTile(
+                    icon: Icons.favorite,
+                    text: 'Favorites',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const FavoritesScreen()),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  SettingTile(
+                    icon: Icons.shopping_cart,
+                    text: 'Cart',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const CartScreen()),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  SettingTile(
+                    icon: Icons.brightness_6_rounded,
+                    text: 'Theme',
+                    trailing: Switch(
+                      value: isDark,
+                      onChanged: (_) =>
+                          context.read<ThemeCubit>().toggleTheme(),
+                      activeColor: colorScheme.primary,
+                    ),
+                    onTap: () => context.read<ThemeCubit>().toggleTheme(),
+                  ),
+                  const SizedBox(height: 12),
+                  SettingTile(
+                    icon: userEmail == null ? Icons.login : Icons.logout,
+                    text: userEmail == null ? 'Login' : 'Logout',
+                    trailing: isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : null,
+                    onTap: () {
+                      if (userEmail == null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const LoginScreen()),
+                        ).then((_) => loadUserData());
+                      } else {
+                        context.read<AuthCubit>().logout();
+                      }
+                    },
+                  ),
+                ],
               ),
-
-            SettingTile(
-              icon: Icons.favorite,
-              text: 'المفضلة',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const FavoritesScreen()),
-                );
-              },
-            ),
-            const SizedBox(height: 12),
-            SettingTile(
-              icon: Icons.shopping_cart,
-              text: 'السلة',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const CartScreen()),
-                );
-              },
-            ),
-            const SizedBox(height: 12),
-            SettingTile(
-              icon: Icons.brightness_6_rounded,
-              text: 'تغيير الثيم',
-              trailing: Switch(
-                value: isDark,
-                onChanged: (val) {
-                  context.read<ThemeCubit>().toggleTheme();
-                },
-              ),
-              onTap: () {
-                context.read<ThemeCubit>().toggleTheme();
-              },
-            ),
-            const SizedBox(height: 12),
-            SettingTile(
-              icon: userEmail == null ? Icons.login : Icons.logout,
-              text: userEmail == null ? 'تسجيل الدخول' : 'تسجيل الخروج',
-              onTap: () {
-                if (userEmail == null) {
-                  Navigator.push(
-                    context,
-                   MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  ).then((_) {
-                    loadUserData(); // إعادة تحميل البيانات عند الرجوع
-                  });
-                } else {
-                  logout();
-                }
-              },
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
@@ -154,15 +181,24 @@ class SettingTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return ListTile(
-      leading: Icon(icon, size: 30, color: Theme.of(context).colorScheme.primary),
-      title: Text(text, style: const TextStyle(fontSize: 18)),
-      trailing: trailing ?? const Icon(Icons.arrow_forward_ios),
-      onTap: onTap,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      leading: Icon(icon, size: 28, color: colorScheme.primary),
+      title: Text(
+        text,
+        style: textTheme.bodyLarge?.copyWith(
+          fontWeight: FontWeight.w500,
+          fontFamily: 'Roboto',
+        ),
       ),
-      tileColor: Theme.of(context).colorScheme.surface.withOpacity(0.1),
+      trailing: trailing ??
+          Icon(Icons.arrow_forward_ios, size: 18, color: colorScheme.onSurface),
+      onTap: onTap,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      tileColor: colorScheme.surface.withOpacity(0.05),
     );
   }
 }

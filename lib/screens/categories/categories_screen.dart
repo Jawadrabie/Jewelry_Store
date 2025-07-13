@@ -47,8 +47,9 @@ class CategoriesScreen extends StatelessWidget {
                 children: [
                   CachedNetworkImage(
                     imageUrl: categories[index].image,
-                    width: 50,
-                    height: 50,
+                    height: 80,
+                    width: 80,
+                    fit: BoxFit.contain,
                     placeholder: (_, __) => const CircularProgressIndicator(),
                     errorWidget: (_, __, ___) => const Icon(Icons.error),
                   ),

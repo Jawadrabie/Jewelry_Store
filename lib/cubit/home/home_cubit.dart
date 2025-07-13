@@ -1,8 +1,6 @@
 // lib/cubit/home/home_cubit.dart
 import 'package:fake_store_app/cubit/home/home_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../data/models/category_model.dart';
-import '../../data/models/product_model.dart';
 import '../../data/repositories/store_repository.dart';
 
 class HomeCubit extends Cubit<HomeState> {

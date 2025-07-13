@@ -19,8 +19,8 @@ class AuthCubit extends Cubit<AuthState> {
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('token', user.token ?? '');
-      await prefs.setString('name', user.name);
-      await prefs.setString('email', user.email);
+      await prefs.setString('user_name', user.name);
+      await prefs.setString('user_email', user.email);
     } catch (e) {
       emit(AuthFailure(e.toString()));
     }
@@ -46,25 +46,30 @@ class AuthCubit extends Cubit<AuthState> {
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('token', user.token ?? '');
-      await prefs.setString('name', user.name);
-      await prefs.setString('email', user.email);
+      await prefs.setString('user_name', user.name);
+      await prefs.setString('user_email', user.email);
     } catch (e) {
       emit(AuthFailure(e.toString()));
     }
   }
 
-  Future<void> logout(String token) async {
+  Future<void> logout() async {
     emit(AuthLoading());
     try {
-      await authRepository.logout(token);
       final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('token');
-      await prefs.remove('name');
-      await prefs.remove('email');
+      final token = prefs.getString('token');
+
+      if (token == null) {
+        throw Exception('No token found');
+      }
+      print(AuthLoading());
+      await authRepository.logout(token);
+      await prefs.clear(); // إزالة كل البيانات المخزنة
       emit(AuthLoggedOut());
     } catch (e) {
+      print(AuthLoggedOut());
+      print(e.toString());
       emit(AuthFailure(e.toString()));
     }
   }
-
 }

@@ -1,24 +1,26 @@
-// في ملف data/models/category_model.dart
-import 'package:flutter/material.dart';
-
-// models/category_model.dart
+// category_model.dart
 class CategoryModel {
   final int id;
   final String name;
+  final String description;
   final String image;
+  final int smithing;
 
   CategoryModel({
     required this.id,
     required this.name,
+    required this.description,
     required this.image,
+    required this.smithing,
   });
 
   factory CategoryModel.fromJson(Map<String, dynamic> json) {
     return CategoryModel(
-      id: json['category_ID'] as int,
+      id: json['id'] as int,
       name: json['name'] as String,
+      description: json['description'] as String,
       image: json['categoryFile'] as String,
+      smithing: json['smithing'] as int,
     );
   }
 }
-

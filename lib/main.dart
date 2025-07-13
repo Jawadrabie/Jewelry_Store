@@ -1,12 +1,11 @@
-import 'package:fake_store_app/screens/auth/login_screen.dart';
-import 'package:fake_store_app/screens/auth/register_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/theme.dart';
 import 'cubit/auth/auth_cubit.dart';
 import 'cubit/cart/cart_cubit.dart';
 import 'cubit/favorite/favorite_cubit.dart';
-import 'cubit/theme.dart';
+import 'cubit/home/home_cubit.dart';  // لو تستخدم HomeCubit
+import 'cubit/theme/theme.dart';
 import 'data/repositories/auth_repository.dart';
 import 'data/repositories/store_repository.dart';
 import 'screens/home/home_screen.dart';
@@ -18,14 +17,21 @@ void main() async {
   final storeRepository = StoreRepository();
   final authRepository = AuthRepository();
 
+  // إنشاء Cubits مرة واحدة فقط
   final favoriteCubit = FavoriteCubit();
   final cartCubit = CartCubit();
+  final authCubit = AuthCubit(authRepository);
+  final themeCubit = ThemeCubit();
+  final homeCubit = HomeCubit(storeRepository);
 
-  await favoriteCubit.loadFavorites();
-  await cartCubit.loadCart();
+  // تحميل البيانات مرة واحدة فقط قبل تشغيل التطبيق
+  //await
+   favoriteCubit.loadFavorites();
+   cartCubit.loadCart();
+   homeCubit.loadHomeData();
 
-  // تحسين المزامنة لتكون في الخلفية
-  WidgetsFlutterBinding.ensureInitialized().addPostFrameCallback((_) {
+  // مزامنة البيانات في الخلفية بعد بناء الإطار الأول
+  WidgetsBinding.instance.addPostFrameCallback((_) {
     syncLocalDataWithServer(favoriteCubit, cartCubit);
   });
 
@@ -34,10 +40,11 @@ void main() async {
       value: storeRepository,
       child: MultiBlocProvider(
         providers: [
-          BlocProvider(create: (_) => ThemeCubit()),
-          BlocProvider(create: (_) => favoriteCubit),
-          BlocProvider(create: (_) => cartCubit),
-          BlocProvider(create: (_) => AuthCubit(authRepository)),
+          BlocProvider.value(value: themeCubit),
+          BlocProvider.value(value: favoriteCubit),
+          BlocProvider.value(value: cartCubit),
+          BlocProvider.value(value: authCubit),
+          BlocProvider.value(value: homeCubit),  // إضافة HomeCubit هنا
         ],
         child: const FakeStoreApp(),
       ),
@@ -45,24 +52,22 @@ void main() async {
   );
 }
 
-// تحسين الدالة لتجنب تجميد الواجهة
+// دالة مزامنة البيانات مع الخادم
 Future<void> syncLocalDataWithServer(
     FavoriteCubit favoriteCubit, CartCubit cartCubit) async {
   try {
     final client = http.Client();
 
-    // مزامنة المفضلة
     final favoriteFutures = favoriteCubit.state.map((product) {
       return client.post(
-        Uri.parse('https://jewelrystore-production.up.railway.app/api/addfavorite'),
+        Uri.parse('https://jewelrystore-production-ec35.up.railway.app/api/addfavorite'),
         body: {'ProductID': product.productId.toString()},
       );
     }).toList();
 
-    // مزامنة السلة
     final cartFutures = cartCubit.state.map((product) {
       return client.post(
-        Uri.parse('https://jewelrystore-production.up.railway.app/api/addorder'),
+        Uri.parse('https://jewelrystore-production-ec35.up.railway.app/api/addorder'),
         body: {'ProductID': product.productId.toString()},
       );
     }).toList();

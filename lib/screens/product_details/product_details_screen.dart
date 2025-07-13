@@ -63,7 +63,7 @@ class ProductDetailsScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('القسم: ${product.categoryId}',
+                Text('القسم: ${product.name}',
                     style: const TextStyle(color: Colors.grey)),
                 Text(
                   '\$${product.price.toStringAsFixed(2)}',
