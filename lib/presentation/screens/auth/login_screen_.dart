@@ -1,7 +1,7 @@
-import 'package:fake_store_app/screens/auth/widgets/custom_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../cubit/auth/auth_cubit.dart';
+import '../../../cubit/auth/auth_cubit.dart';
+import '../../../widgets/buildTextField.dart';
 import '../home/home_screen.dart';
 import 'register_screen.dart';
 
@@ -53,12 +53,12 @@ class _LoginScreenState extends State<LoginScreen> {
             decoration: isDarkMode
                 ? null
                 : const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFFFFF7E0), Color(0xFFFAE091)],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
+                    gradient: LinearGradient(
+                      colors: [Color(0xFFFFF7E0), Color(0xFFFAE091)],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                  ),
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Center(
               child: SingleChildScrollView(
@@ -87,11 +87,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         'Please login to continue',
                         style: TextStyle(
                           fontSize: 14,
-                          color: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
-                              ?.color
-                              ?.withOpacity(0.6),
+                          color: Theme.of(
+                            context,
+                          ).textTheme.bodyMedium?.color?.withOpacity(0.6),
                           fontFamily: 'Roboto',
                         ),
                       ),
@@ -126,8 +124,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             color: Theme.of(context).iconTheme.color,
                           ),
                           onPressed: () {
-                            setState(() =>
-                            obscurePassword = !obscurePassword);
+                            setState(() => obscurePassword = !obscurePassword);
                           },
                         ),
                         validator: (value) {
@@ -146,16 +143,17 @@ class _LoginScreenState extends State<LoginScreen> {
                           onPressed: state is AuthLoading
                               ? null
                               : () {
-                            if (_formKey.currentState!.validate()) {
-                              authCubit.login(
-                                emailController.text.trim(),
-                                passwordController.text.trim(),
-                              );
-                            }
-                          },
+                                  if (_formKey.currentState!.validate()) {
+                                    authCubit.login(
+                                      emailController.text.trim(),
+                                      passwordController.text.trim(),
+                                    );
+                                  }
+                                },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                            Theme.of(context).colorScheme.primary,
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.primary,
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
@@ -163,21 +161,21 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           child: state is AuthLoading
                               ? CircularProgressIndicator(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onPrimary,
-                          )
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onPrimary,
+                                )
                               : Text(
-                            'LOGIN',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onPrimary,
-                              fontFamily: 'Roboto',
-                            ),
-                          ),
+                                  'LOGIN',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onPrimary,
+                                    fontFamily: 'Roboto',
+                                  ),
+                                ),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -188,7 +186,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (_) => const RegisterScreen()),
+                              builder: (_) => const RegisterScreen(),
+                            ),
                           );
                         },
                         child: Text.rich(
@@ -197,19 +196,18 @@ class _LoginScreenState extends State<LoginScreen> {
                               TextSpan(
                                 text: "Don't have an account?",
                                 style: TextStyle(
-                                  color: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium!
-                                      .color,
+                                  color: Theme.of(
+                                    context,
+                                  ).textTheme.bodyMedium!.color,
                                 ),
                               ),
                               TextSpan(
                                 text: ' Sign up',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .secondary,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.secondary,
                                 ),
                               ),
                             ],

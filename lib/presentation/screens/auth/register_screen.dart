@@ -1,7 +1,7 @@
-import 'package:fake_store_app/screens/auth/widgets/custom_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../cubit/auth/auth_cubit.dart';
+import '../../../cubit/auth/auth_cubit.dart';
+import '../../../widgets/buildTextField.dart';
 import '../home/home_screen.dart';
 
 class RegisterScreen extends StatefulWidget {

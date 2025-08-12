@@ -1,3 +1,4 @@
+
 import 'dart:convert';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -28,7 +29,6 @@ class CartCubit extends Cubit<List<ProductModel>> {
 
     emit(current);
     await _saveToPrefs(current);
-    await _syncWithServer(product, exists ? 'remove' : 'add');
   }
 
   Future<void> remove(ProductModel product) async {
@@ -36,7 +36,6 @@ class CartCubit extends Cubit<List<ProductModel>> {
       ..removeWhere((p) => p.productId == product.productId);
     emit(updated);
     await _saveToPrefs(updated);
-    await _syncWithServer(product, 'remove');
   }
 
 
@@ -47,15 +46,5 @@ class CartCubit extends Cubit<List<ProductModel>> {
   }
 
 
-  Future<void> _syncWithServer(ProductModel product, String action) async {
-    final endpoint = action == 'add' ? 'addorder' : 'removeorder';
-    final url = Uri.parse('https://jewelrystore-production.up.railway.app/api/$endpoint');
-    final resp = await http.post(url, body: {
-      'ProductID': product.productId.toString(),
-    });
-    if (resp.statusCode != 200) {
-      // هنا يمكنك أخذ إجراء أو تقرير الخطأ
-      print('خطأ مزامنة السلة: ${resp.statusCode}');
-    }
-  }
+
 }

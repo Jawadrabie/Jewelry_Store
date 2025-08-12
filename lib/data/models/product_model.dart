@@ -1,3 +1,5 @@
+// lib/data/models/product_model.dart
+
 class ProductModel {
   final int productId;
   final String name;
@@ -41,6 +43,7 @@ class ProductModel {
     );
   }
 
+  /// ترميز الكائن إلى خريطة يمكن تحويلها إلى JSON
   Map<String, dynamic> toJson() {
     return {
       'id': productId,

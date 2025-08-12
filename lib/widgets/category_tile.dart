@@ -1,7 +1,7 @@
 // lib/widgets/category_tile.dart
 import 'package:flutter/material.dart';
 import '../data/models/category_model.dart';
-import '../screens/categories/categories_screen.dart';
+import '../presentation/screens/categories/categories_screen.dart';
 
 class CategoryTile extends StatelessWidget {
   final CategoryModel category;

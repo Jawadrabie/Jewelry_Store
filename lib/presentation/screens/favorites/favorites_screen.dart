@@ -1,7 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../cubit/favorite/favorite_cubit.dart';
+import '../../../cubit/favorite/favorite_cubit.dart';
 import '../product_details/product_details_screen.dart';
 
 class FavoritesScreen extends StatelessWidget {

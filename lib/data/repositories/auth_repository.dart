@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/user_model.dart';
 
 class AuthRepository {
-  final String baseUrl = 'https://jewelrystore-production-ec35.up.railway.app/api';
+  final String baseUrl = 'https://jawalry.mustafafares.com/api';
 
   Future<UserModel> login(String email, String password) async {
     final response = await http.post(

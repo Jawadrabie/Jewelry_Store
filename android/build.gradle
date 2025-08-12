@@ -1,7 +1,19 @@
+//allprojects {
+//    repositories {
+//        google()
+//        mavenCentral()
+//    }
+//}
+
 allprojects {
     repositories {
         google()
         mavenCentral()
+        // 🟢 مخازن بديلة (سريعة - تعمل غالبًا مع الانترنت الضعيف)
+        maven { url 'https://maven.aliyun.com/repository/google' }
+        maven { url 'https://maven.aliyun.com/repository/central' }
+        maven { url 'https://maven.aliyun.com/repository/public' }
+        maven { url 'https://jitpack.io' }
     }
 }
 

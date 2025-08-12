@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../cubit/auth/auth_cubit.dart';
-import '../../cubit/theme/theme.dart';
+import '../../../cubit/auth/auth_cubit.dart';
+import '../../../cubit/theme/theme.dart';
 import '../auth/login_screen_.dart';
 import '../cart/cart_screen.dart';
 import '../favorites/favorites_screen.dart';

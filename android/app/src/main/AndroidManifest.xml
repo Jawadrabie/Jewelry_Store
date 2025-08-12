@@ -1,8 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- إذن الوصول للإنترنت -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:label="fake_store_app"
+        android:label="Aswara"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        >
         <activity
             android:name=".MainActivity"
             android:exported="true"

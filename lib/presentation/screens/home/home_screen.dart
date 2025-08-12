@@ -1,14 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-
-import '../../cubit/home/home_cubit.dart';
-import '../../data/models/product_model.dart';
 import '../add/add_item_screen.dart';
 import '../favorites/favorites_screen.dart';
-import '../product_details/product_details_screen.dart';
-
-import 'package:flutter/material.dart';
 import '../settings/settings_screen.dart';
 import 'home_content.dart';
 

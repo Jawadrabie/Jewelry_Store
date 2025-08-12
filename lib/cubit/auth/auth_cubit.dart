@@ -21,6 +21,8 @@ class AuthCubit extends Cubit<AuthState> {
       await prefs.setString('token', user.token ?? '');
       await prefs.setString('user_name', user.name);
       await prefs.setString('user_email', user.email);
+      print('Saved token: ${prefs.getString('token')}');
+
     } catch (e) {
       emit(AuthFailure(e.toString()));
     }

@@ -1,9 +1,10 @@
-// category_model.dart
+// lib/data/models/category_model.dart
+
 class CategoryModel {
   final int id;
   final String name;
   final String description;
-  final String image;
+  final String image;   // maps to JSON key 'categoryFile'
   final int smithing;
 
   CategoryModel({
@@ -22,5 +23,16 @@ class CategoryModel {
       image: json['categoryFile'] as String,
       smithing: json['smithing'] as int,
     );
+  }
+
+  /// ترميز الكائن إلى خريطة يمكن تحويلها إلى JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'categoryFile': image,
+      'smithing': smithing,
+    };
   }
 }

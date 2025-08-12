@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-import '../../data/models/product_model.dart';
-import '../../cubit/favorite/favorite_cubit.dart';
-import '../../cubit/cart/cart_cubit.dart';
+import '../../../cubit/cart/cart_cubit.dart';
+import '../../../cubit/favorite/favorite_cubit.dart';
+import '../../../data/models/product_model.dart';
 
 class ProductDetailsScreen extends StatelessWidget {
   final ProductModel product;
