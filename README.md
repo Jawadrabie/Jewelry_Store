@@ -27,3 +27,9 @@ The app is optimized for performance using **lazy loading**, **image caching**, 
 - Persistent cart and favorites even after app restart.
 - Clean and modular code structure for scalability.
 
+---
+
+## 📦 Installation & Setup
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/fake_store_app.git
