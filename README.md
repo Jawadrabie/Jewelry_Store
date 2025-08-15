@@ -1,16 +1,29 @@
-# fake_store_app
+# 🛒 Fake Store App
 
-A new Flutter project.
+## 📌 Project Description
+Fake Store App is a fully functional e-commerce mobile application built with **Flutter** and **Dart**, designed to demonstrate advanced state management, API integration, and responsive UI techniques. The application fetches real product data from a public API, supports browsing by categories, product details view, adding items to a shopping cart, and managing favorites.  
+The app is optimized for performance using **lazy loading**, **image caching**, and **state persistence**, providing a smooth shopping experience across devices.
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+## 🛠️ Tech Stack
+- **Flutter** — Cross-platform mobile app development framework.
+- **Dart** — Programming language for Flutter.
+- **Dio / HTTP** — Networking and API requests.
+- **Cubit / Bloc** — State management and event-driven architecture.
+- **CachedNetworkImage** — Efficient image loading with caching.
+- **SharedPreferences** — Local storage for offline persistence.
+- **Responsive UI** — Adaptive layouts for multiple screen sizes.
 
-A few resources to get you started if this is your first Flutter project:
+---
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## 🚀 Features
+- Fetch and display products dynamically from REST API.
+- Browse products by categories.
+- Detailed product pages with image, price, and description.
+- Add/remove products from the shopping cart.
+- Manage favorites locally with instant UI updates.
+- Image caching for faster loading.
+- Persistent cart and favorites even after app restart.
+- Clean and modular code structure for scalability.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
