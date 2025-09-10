@@ -1,11 +1,24 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../cubit/favorite/favorite_cubit.dart';
 import '../product_details/product_details_screen.dart';
 
-class FavoritesScreen extends StatelessWidget {
+class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
+
+  @override
+  State<FavoritesScreen> createState() => _FavoritesScreenState();
+}
+
+class _FavoritesScreenState extends State<FavoritesScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Load favorites data when screen opens
+    context.read<FavoriteCubit>().loadFavorites();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +27,28 @@ class FavoritesScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('المفضلة')),
       body: favorites.isEmpty
-          ? const Center(child: Text('لا توجد منتجات في المفضلة.'))
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.favorite_border_rounded,
+                    size: 100,
+                    color: Colors.grey[400],
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'المفضلة فارغة',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'اضغط على ♡ لإضافة منتجات للمفضلة',
+                    style: TextStyle(color: Colors.grey, fontSize: 16),
+                  ),
+                ],
+              ),
+            )
           : ListView.separated(
               itemCount: favorites.length,
               separatorBuilder: (_, __) => const Divider(),
@@ -22,14 +56,28 @@ class FavoritesScreen extends StatelessWidget {
                 final product = favorites[index];
                 return ListTile(
                   leading:
-                 // Image.network(product.productFile, width: 60, fit: BoxFit.cover),
-                  CachedNetworkImage(
-                    imageUrl: '${product.productFile}',
-                    placeholder: (context, url) =>
-                        CircularProgressIndicator(),
-                    errorWidget: (context, url, error) =>
-                        Icon(Icons.error),
-                  ),
+                      // Image.network(product.productFile, width: 60, fit: BoxFit.cover),
+                      CachedNetworkImage(
+                        imageUrl: '${product.productFile}',
+                        width: 60,
+                        height: 60,
+                        fit: BoxFit.cover,
+                        memCacheWidth: 120,
+                        memCacheHeight: 120,
+                        maxWidthDiskCache: 200,
+                        maxHeightDiskCache: 200,
+                        placeholder: (context, url) => Shimmer.fromColors(
+                          baseColor: Colors.grey.shade300,
+                          highlightColor: Colors.grey.shade100,
+                          child: Container(
+                            width: 60,
+                            height: 60,
+                            color: Colors.grey.shade300,
+                          ),
+                        ),
+                        errorWidget: (context, url, error) =>
+                            const Icon(Icons.error),
+                      ),
                   title: Text(product.name),
                   subtitle: Text('\$${product.price.toStringAsFixed(2)}'),
                   trailing: IconButton(

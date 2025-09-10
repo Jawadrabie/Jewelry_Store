@@ -6,10 +6,11 @@ import 'cubit/add_product/product_add_cubit.dart';
 import 'cubit/auth/auth_cubit.dart';
 import 'cubit/cart/cart_cubit.dart';
 import 'cubit/favorite/favorite_cubit.dart';
-import 'cubit/home/home_cubit.dart';  // لو تستخدم HomeCubit
+import 'cubit/home/home_cubit.dart'; // لو تستخدم HomeCubit
 import 'cubit/theme/theme.dart';
 import 'data/repositories/auth_repository.dart';
 import 'data/repositories/store_repository.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -24,6 +25,10 @@ void main() async {
   final homeCubit = HomeCubit(storeRepository);
   final productAddCubit = ProductAddCubit(storeRepository);
 
+  // Load saved data on app startup
+  await favoriteCubit.loadFavorites();
+  await cartCubit.loadCart();
+
   runApp(
     RepositoryProvider.value(
       value: storeRepository,
@@ -34,14 +39,13 @@ void main() async {
           BlocProvider.value(value: cartCubit),
           BlocProvider.value(value: authCubit),
           BlocProvider.value(value: homeCubit),
-          BlocProvider.value(value: productAddCubit),// إضافة HomeCubit هنا
+          BlocProvider.value(value: productAddCubit), // إضافة HomeCubit هنا
         ],
         child: const FakeStoreApp(),
       ),
     ),
   );
 }
-
 
 class FakeStoreApp extends StatelessWidget {
   const FakeStoreApp({super.key});

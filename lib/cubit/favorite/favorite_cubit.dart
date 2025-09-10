@@ -6,12 +6,18 @@ class FavoriteCubit extends Cubit<List<ProductModel>> {
   FavoriteCubit() : super([]);
 
   Future<void> loadFavorites() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonList = prefs.getStringList('favorites') ?? [];
-    final list = jsonList
-        .map((str) => ProductModel.fromJson(json.decode(str)))
-        .toList();
-    emit(list);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonList = prefs.getStringList('favorites') ?? [];
+      final list = jsonList
+          .map((str) => ProductModel.fromJson(json.decode(str)))
+          .toList();
+      emit(list);
+      print('Favorites loaded: ${list.length} items');
+    } catch (e) {
+      print('Error loading favorites: $e');
+      emit([]);
+    }
   }
 
   Future<void> toggle(ProductModel product) async {
@@ -29,9 +35,14 @@ class FavoriteCubit extends Cubit<List<ProductModel>> {
   }
 
   Future<void> _saveToPrefs(List<ProductModel> list) async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonList = list.map((p) => json.encode(p.toJson())).toList();
-    await prefs.setStringList('favorites', jsonList);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonList = list.map((p) => json.encode(p.toJson())).toList();
+      await prefs.setStringList('favorites', jsonList);
+      print('Favorites saved: ${list.length} items');
+    } catch (e) {
+      print('Error saving favorites: $e');
+    }
   }
 
   Future<void> remove(ProductModel product) async {

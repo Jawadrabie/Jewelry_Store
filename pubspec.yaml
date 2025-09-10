@@ -19,11 +19,12 @@ dependencies:
   shimmer: ^3.0.0
   build_runner: ^2.4.8
   json_serializable: ^6.7.1
-  image_picker: ^1.1.2
+  image_picker: ^1.0.7
   dio: ^5.0.0
-  file_picker: ^10.2.0
+  file_picker: ^10.3.2
   cupertino_icons: ^1.0.6
   flutter_native_splash: ^2.4.6
+  fluttertoast: ^8.2.4
 
 dev_dependencies:
   flutter_test:

@@ -6,6 +6,7 @@ import '../../../cubit/theme/theme.dart';
 import '../auth/login_screen_.dart';
 import '../cart/cart_screen.dart';
 import '../favorites/favorites_screen.dart';
+import '../offers/offers_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -117,6 +118,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => const CartScreen()),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  SettingTile(
+                    icon: Icons.local_offer,
+                    text: 'Offers',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const OffersScreen()),
                       );
                     },
                   ),

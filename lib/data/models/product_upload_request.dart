@@ -6,13 +6,16 @@ class ProductUploadRequest {
   final String description;
   final double price;
   final String weight;
-  final File file;
+  // Backwards compatibility: either provide a single file or multiple files
+  final File? file;
+  final List<File> files;
 
   ProductUploadRequest({
     required this.name,
     required this.description,
     required this.price,
     required this.weight,
-    required this.file,
+    this.file,
+    this.files = const [],
   });
 }

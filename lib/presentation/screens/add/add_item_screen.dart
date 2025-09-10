@@ -1,8 +1,10 @@
 // lib/screens/add/add_item_screen.dart
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:file_picker/file_picker.dart';
+//import 'package:file_picker/file_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../cubit/add_product/product_add_cubit.dart';
 import '../../../cubit/add_product/product_add_state.dart';
@@ -23,15 +25,68 @@ class _AddItemScreenState extends State<AddItemScreen> {
   final _priceCtrl = TextEditingController();
   final _weightCtrl = TextEditingController();
 
-  File? _pickedFile;
+  final List<File> _pickedFiles = [];
+  bool _isUploading = false;
 
-  void _pickFile() async {
-    final result = await FilePicker.platform.pickFiles(type: FileType.image);
+  Future<void> _pickFromGallery() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      allowMultiple: true,
+    );
     if (result != null && result.files.isNotEmpty) {
       setState(() {
-        _pickedFile = File(result.files.single.path!);
+        _pickedFiles.addAll(
+          result.files.where((f) => f.path != null).map((f) => File(f.path!)),
+        );
       });
     }
+  }
+
+  Future<void> _pickFromCamera() async {
+    final picker = ImagePicker();
+    final xfile = await picker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 85,
+    );
+    if (xfile != null) {
+      setState(() {
+        _pickedFiles.add(File(xfile.path));
+      });
+    }
+  }
+
+  void _showPickSource() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_library_outlined),
+                title: const Text('اختيار من المعرض'),
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  await _pickFromGallery();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_camera_outlined),
+                title: const Text('التقاط عبر الكاميرا'),
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  await _pickFromCamera();
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   void _onSubmit() async {
@@ -44,22 +99,34 @@ class _AddItemScreenState extends State<AddItemScreen> {
       return;
     }
 
-    if (!_formKey.currentState!.validate() || _pickedFile == null) {
+    if (!_formKey.currentState!.validate() || _pickedFiles.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('الرجاء تعبئة جميع الحقول واختيار صورة')),
       );
       return;
     }
 
+    setState(() {
+      _isUploading = true;
+    });
+
     final request = ProductUploadRequest(
       name: _nameCtrl.text.trim(),
       description: _descCtrl.text.trim(),
       price: double.parse(_priceCtrl.text.trim()),
       weight: _weightCtrl.text.trim(),
-      file: _pickedFile!,
+      // API currently accepts a single file under 'ProductFile'
+      file: _pickedFiles.isNotEmpty ? _pickedFiles.first : null,
     );
 
-    context.read<ProductAddCubit>().addProduct(request: request, token: token);
+    await context.read<ProductAddCubit>().addProduct(
+      request: request,
+      token: token,
+    );
+    if (mounted)
+      setState(() {
+        _isUploading = false;
+      });
   }
 
   void _showLoginDialog() {
@@ -76,9 +143,9 @@ class _AddItemScreenState extends State<AddItemScreen> {
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
-              Navigator.push(
+              Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                MaterialPageRoute(builder: (_) => const AddItemScreen()),
               );
             },
             child: const Text('تسجيل الدخول'),
@@ -93,15 +160,15 @@ class _AddItemScreenState extends State<AddItemScreen> {
     return BlocConsumer<ProductAddCubit, ProductAddState>(
       listener: (context, state) {
         if (state is ProductAddSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('تم رفع المنتج بنجاح')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('تم رفع المنتج بنجاح')));
           Navigator.pop(context);
         } else if (state is ProductAddFailure) {
           print('خطأ: ${state.error}');
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('خطأ: ${state.error}')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('خطأ: ${state.error}')));
         }
       },
       builder: (context, state) {
@@ -117,42 +184,103 @@ class _AddItemScreenState extends State<AddItemScreen> {
                     controller: _nameCtrl,
                     decoration: const InputDecoration(labelText: 'اسم المنتج'),
                     validator: (value) =>
-                    value!.isEmpty ? 'هذا الحقل مطلوب' : null,
+                        value!.isEmpty ? 'هذا الحقل مطلوب' : null,
                   ),
+                  SizedBox(height: 10),
                   TextFormField(
                     controller: _descCtrl,
                     decoration: const InputDecoration(labelText: 'الوصف'),
                     validator: (value) =>
-                    value!.isEmpty ? 'هذا الحقل مطلوب' : null,
+                        value!.isEmpty ? 'هذا الحقل مطلوب' : null,
                   ),
+                  SizedBox(height: 10),
+
                   TextFormField(
                     controller: _priceCtrl,
                     decoration: const InputDecoration(labelText: 'السعر'),
                     keyboardType: TextInputType.number,
                     validator: (value) =>
-                    value!.isEmpty ? 'هذا الحقل مطلوب' : null,
+                        value!.isEmpty ? 'هذا الحقل مطلوب' : null,
                   ),
+                  SizedBox(height: 10),
+
                   TextFormField(
                     controller: _weightCtrl,
                     decoration: const InputDecoration(labelText: 'الوزن'),
                     validator: (value) =>
-                    value!.isEmpty ? 'هذا الحقل مطلوب' : null,
+                        value!.isEmpty ? 'هذا الحقل مطلوب' : null,
                   ),
+                  const SizedBox(height: 10),
+                  OutlinedButton.icon(
+                    onPressed: _showPickSource,
+                    icon: const Icon(Icons.upload_file),
+                    label: const Text('رفع الصور'),
+                  ),
+
                   const SizedBox(height: 12),
-                  ElevatedButton.icon(
-                    onPressed: _pickFile,
-                    icon: const Icon(Icons.file_upload),
-                    label: Text(_pickedFile == null
-                        ? 'اختيار صورة'
-                        : 'تم اختيار صورة'),
-                  ),
+                  // معاينة الصور المختارة
+                  if (_pickedFiles.isNotEmpty)
+                    SizedBox(
+                      height: 100,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: _pickedFiles.length,
+                        separatorBuilder: (_, __) => const SizedBox(width: 8),
+                        itemBuilder: (context, i) {
+                          final file = _pickedFiles[i];
+                          return Stack(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: Image.file(
+                                  file,
+                                  width: 100,
+                                  height: 100,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              Positioned(
+                                top: 4,
+                                right: 4,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _pickedFiles.removeAt(i);
+                                    });
+                                  },
+                                  child: Container(
+                                    width: 24,
+                                    height: 24,
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withOpacity(0.6),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.close,
+                                      color: Colors.white,
+                                      size: 16,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
                   const SizedBox(height: 24),
-                  state is ProductAddLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : ElevatedButton(
-                    onPressed: _onSubmit,
-                    child: const Text('رفع المنتج'),
-                  ),
+                  _isUploading || state is ProductAddLoading
+                      ? const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(12.0),
+                            child: CircularProgressIndicator(),
+                          ),
+                        )
+                      : ElevatedButton.icon(
+                          onPressed: _onSubmit,
+                          icon: const Icon(Icons.cloud_upload_outlined),
+                          label: const Text('رفع المنتج'),
+                        ),
                 ],
               ),
             ),

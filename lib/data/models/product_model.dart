@@ -10,8 +10,9 @@ class ProductModel {
   final bool isFeatured;
   final String categoryName;
   final int quantity;
-  final int smithing;
+  final double smithing;
   final int categoryId;
+  final int? karat;
 
   ProductModel({
     required this.productId,
@@ -25,6 +26,7 @@ class ProductModel {
     required this.quantity,
     required this.smithing,
     required this.categoryId,
+    this.karat,
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
@@ -38,8 +40,9 @@ class ProductModel {
       isFeatured: (json['isFeatured'] ?? 0) == 1,
       categoryName: json['category_name'] ?? '',
       quantity: json['quantity'] ?? 0,
-      smithing: json['smithing'] ?? 0,
+      smithing: double.tryParse(json['smithing']?.toString() ?? '0') ?? 0.0,
       categoryId: json['categoryid'] ?? 0,
+      karat: json['karat'],
     );
   }
 
@@ -57,6 +60,7 @@ class ProductModel {
       'quantity': quantity,
       'smithing': smithing,
       'categoryid': categoryId,
+      'karat': karat,
     };
   }
 }

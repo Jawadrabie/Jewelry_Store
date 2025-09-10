@@ -1,6 +1,5 @@
 // import 'package:flutter/material.dart';
-// import 'package:cached_network_image/cached_network_image.dart';
-// import '../../../../data/models/product_model.dart';
+// // import '../../../../data/models/product_model.dart';
 // import '../../product_details/product_details_screen.dart';
 //
 // class ProductsGrid extends StatelessWidget {

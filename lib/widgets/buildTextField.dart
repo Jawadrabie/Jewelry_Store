@@ -27,19 +27,22 @@ class CustomTextField extends StatelessWidget {
       keyboardType: keyboardType,
       obscureText: obscureText,
       validator: validator,
-      style: const TextStyle(fontFamily: 'Roboto'), // لتوحيد الخط
+      style: TextStyle(
+        fontFamily: 'Roboto',
+        color: Theme.of(context).textTheme.bodyLarge?.color, // Use theme text color
+      ),
       decoration: InputDecoration(
         labelText: label,
         labelStyle: TextStyle(
-          color: Colors.black.withOpacity(0.7),
+          color: Theme.of(context).hintColor,
         ),
         hintText: hint,
-        hintStyle: const TextStyle(
-          color: Colors.black54,
+        hintStyle: TextStyle(
+          color: Theme.of(context).hintColor,
         ),
         floatingLabelBehavior: FloatingLabelBehavior.never,
         filled: true,
-        fillColor: const Color(0xFFFEFCF2),
+        fillColor: Theme.of(context).colorScheme.surface, // Use theme surface color
         contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
@@ -51,18 +54,27 @@ class CustomTextField extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Colors.red, width: 1.0),
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.primary,
+            width: 1.0,
+          ),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Colors.red, width: 1.0),
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.error,
+            width: 1.0,
+          ),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Colors.red, width: 1.0),
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.error,
+            width: 1.0,
+          ),
         ),
         suffixIcon: suffixIcon,
-        errorStyle: TextStyle(color: Colors.red.shade700, fontSize: 12),
+        errorStyle: TextStyle(color: Theme.of(context).colorScheme.error, fontSize: 12),
       ),
     );
   }

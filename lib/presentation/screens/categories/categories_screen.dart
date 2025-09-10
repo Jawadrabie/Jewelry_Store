@@ -1,7 +1,8 @@
 // lib/presentation/screens/categories_screen.dart
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../cubit/home/home_cubit.dart';
 import '../../../data/models/category_model.dart';
 import 'category_products_screen.dart';
@@ -57,9 +58,20 @@ class CategoriesScreen extends StatelessWidget {
                       height: 80,
                       width: 80,
                       fit: BoxFit.contain,
-                      placeholder: (_, __) =>
-                      const CircularProgressIndicator(),
-                      errorWidget: (_, __, ___) => const Icon(Icons.error),
+                      memCacheWidth: 160,
+                      memCacheHeight: 160,
+                      maxWidthDiskCache: 300,
+                      maxHeightDiskCache: 300,
+                      placeholder: (context, url) => Shimmer.fromColors(
+                        baseColor: Colors.grey.shade300,
+                        highlightColor: Colors.grey.shade100,
+                        child: Container(
+                          height: 80,
+                          width: 80,
+                          color: Colors.grey.shade300,
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => const Icon(Icons.error),
                     ),
                     const SizedBox(height: 8),
                     Text(

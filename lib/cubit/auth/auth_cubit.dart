@@ -9,7 +9,33 @@ part 'auth_state.dart';
 class AuthCubit extends Cubit<AuthState> {
   final AuthRepository authRepository;
 
-  AuthCubit(this.authRepository) : super(AuthInitial());
+  AuthCubit(this.authRepository) : super(AuthInitial()) {
+    _loadSavedUser();
+  }
+
+  Future<void> _loadSavedUser() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+      final name = prefs.getString('user_name');
+      final email = prefs.getString('user_email');
+
+      if (token != null && name != null && email != null) {
+        final user = UserModel(
+          name: name,
+          email: email,
+          token: token,
+        );
+        emit(AuthSuccess(user));
+        print('User loaded from storage: $name');
+      } else {
+        emit(AuthInitial());
+      }
+    } catch (e) {
+      print('Error loading saved user: $e');
+      emit(AuthInitial());
+    }
+  }
 
   Future<void> login(String email, String password) async {
     emit(AuthLoading());
@@ -66,7 +92,10 @@ class AuthCubit extends Cubit<AuthState> {
       }
       print(AuthLoading());
       await authRepository.logout(token);
-      await prefs.clear(); // إزالة كل البيانات المخزنة
+      // إزالة بيانات المستخدم فقط وليس السلة والمفضلة
+      await prefs.remove('token');
+      await prefs.remove('user_name');
+      await prefs.remove('user_email');
       emit(AuthLoggedOut());
     } catch (e) {
       print(AuthLoggedOut());
