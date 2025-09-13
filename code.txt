@@ -4,8 +4,8 @@ This digest is designed to be easily parsed by Large Language Models.
 --- SUMMARY ---
 Repository: fake_store_app
 Files Analyzed: 646
-Total Text Size: 1.15 MB
-Estimated Tokens (text only): ~304,690
+Total Text Size: 1.14 MB
+Estimated Tokens (text only): ~302,525
 
 --- DIRECTORY STRUCTURE ---
 fake_store_app/
@@ -988,6 +988,11 @@ public final class GeneratedPluginRegistrant {
       Log.e(TAG, "Error registering plugin flutter_plugin_android_lifecycle, io.flutter.plugins.flutter_plugin_android_lifecycle.FlutterAndroidLifecyclePlugin", e);
     }
     try {
+      flutterEngine.getPlugins().add(new io.github.ponnamkarthik.toast.fluttertoast.FlutterToastPlugin());
+    } catch (Exception e) {
+      Log.e(TAG, "Error registering plugin fluttertoast, io.github.ponnamkarthik.toast.fluttertoast.FlutterToastPlugin", e);
+    }
+    try {
       flutterEngine.getPlugins().add(new io.flutter.plugins.imagepicker.ImagePickerPlugin());
     } catch (Exception e) {
       Log.e(TAG, "Error registering plugin image_picker_android, io.flutter.plugins.imagepicker.ImagePickerPlugin", e);
@@ -1005,7 +1010,7 @@ public final class GeneratedPluginRegistrant {
     try {
       flutterEngine.getPlugins().add(new com.tekartik.sqflite.SqflitePlugin());
     } catch (Exception e) {
-      Log.e(TAG, "Error registering plugin sqflite, com.tekartik.sqflite.SqflitePlugin", e);
+      Log.e(TAG, "Error registering plugin sqflite_android, com.tekartik.sqflite.SqflitePlugin", e);
     }
   }
 }
@@ -1865,6 +1870,12 @@ FILE: ios/Runner/GeneratedPluginRegistrant.m
 @import flutter_native_splash;
 #endif
 
+#if __has_include(<fluttertoast/FluttertoastPlugin.h>)
+#import <fluttertoast/FluttertoastPlugin.h>
+#else
+@import fluttertoast;
+#endif
+
 #if __has_include(<image_picker_ios/FLTImagePickerPlugin.h>)
 #import <image_picker_ios/FLTImagePickerPlugin.h>
 #else
@@ -1883,10 +1894,10 @@ FILE: ios/Runner/GeneratedPluginRegistrant.m
 @import shared_preferences_foundation;
 #endif
 
-#if __has_include(<sqflite/SqflitePlugin.h>)
-#import <sqflite/SqflitePlugin.h>
+#if __has_include(<sqflite_darwin/SqflitePlugin.h>)
+#import <sqflite_darwin/SqflitePlugin.h>
 #else
-@import sqflite;
+@import sqflite_darwin;
 #endif
 
 @implementation GeneratedPluginRegistrant
@@ -1894,6 +1905,7 @@ FILE: ios/Runner/GeneratedPluginRegistrant.m
 + (void)registerWithRegistry:(NSObject<FlutterPluginRegistry>*)registry {
   [FilePickerPlugin registerWithRegistrar:[registry registrarForPlugin:@"FilePickerPlugin"]];
   [FlutterNativeSplashPlugin registerWithRegistrar:[registry registrarForPlugin:@"FlutterNativeSplashPlugin"]];
+  [FluttertoastPlugin registerWithRegistrar:[registry registrarForPlugin:@"FluttertoastPlugin"]];
   [FLTImagePickerPlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTImagePickerPlugin"]];
   [PathProviderPlugin registerWithRegistrar:[registry registrarForPlugin:@"PathProviderPlugin"]];
   [SharedPreferencesPlugin registerWithRegistrar:[registry registrarForPlugin:@"SharedPreferencesPlugin"]];
@@ -12799,8 +12811,8 @@ publish_to: 'none'
 version: 1.0.0
 
 environment:
-  sdk: ^3.4.0
-  flutter: ">=3.22.0"
+  sdk: ^3.6.0
+  flutter: ">=3.27.0"
 
 dependencies:
   flutter:
@@ -12812,7 +12824,7 @@ dependencies:
     # The example app is bundled with the plugin so we use a path dependency on
     # the parent directory to use the current plugin's version.
     path: ..
-  image_picker_platform_interface: ^2.8.0
+  image_picker_platform_interface: ^2.11.0
   mime: ^2.0.0
   video_player: ^2.1.4
 
@@ -12966,6 +12978,16 @@ void main() {
         () async {
       await expectLater(
           plugin.getVideo(source: ImageSource.camera), throwsStateError);
+    });
+
+    test('getMultiVideoWithOptions passes the accepted type groups correctly',
+        () async {
+      await plugin.getMultiVideoWithOptions();
+
+      final VerificationResult result = verify(
+          mockFileSelectorPlatform.openFiles(
+              acceptedTypeGroups: captureAnyNamed('acceptedTypeGroups')));
+      expect(capturedTypeGroups(result)[0].mimeTypes, <String>['video/*']);
     });
   });
 
@@ -13186,6 +13208,11 @@ Alexandre Zollinger Chohfi <alzollin@microsoft.com>
 ============================================================
 FILE: linux/flutter/ephemeral/.plugin_symlinks/image_picker_linux/CHANGELOG.md
 ============================================================
+## 0.2.2
+
+* Adds support for `getMultiVideoWithOptions`.
+* Updates minimum supported SDK version to Flutter 3.27/Dart 3.6.
+
 ## 0.2.1+2
 
 * Updates minimum supported SDK version to Flutter 3.22/Dart 3.4.
@@ -13242,11 +13269,11 @@ name: image_picker_linux
 description: Linux platform implementation of image_picker
 repository: https://github.com/flutter/packages/tree/main/packages/image_picker/image_picker_linux
 issue_tracker: https://github.com/flutter/flutter/issues?q=is%3Aissue+is%3Aopen+label%3A%22p%3A+image_picker%22
-version: 0.2.1+2
+version: 0.2.2
 
 environment:
-  sdk: ^3.4.0
-  flutter: ">=3.22.0"
+  sdk: ^3.6.0
+  flutter: ">=3.27.0"
 
 flutter:
   plugin:
@@ -13260,7 +13287,7 @@ dependencies:
   file_selector_platform_interface: ^2.2.0
   flutter:
     sdk: flutter
-  image_picker_platform_interface: ^2.8.0
+  image_picker_platform_interface: ^2.11.0
 
 dev_dependencies:
   build_runner: ^2.1.5
@@ -16430,7 +16457,7 @@ import file_picker
 import file_selector_macos
 import path_provider_foundation
 import shared_preferences_foundation
-import sqflite
+import sqflite_darwin
 
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
   FilePickerPlugin.register(with: registry.registrar(forPlugin: "FilePickerPlugin"))
@@ -29325,6 +29352,11 @@ include(${EPHEMERAL_DIR}/generated_config.cmake)
 # https://github.com/flutter/flutter/issues/57146.
 set(WRAPPER_ROOT "${EPHEMERAL_DIR}/cpp_client_wrapper")
 
+# Set fallback configurations for older versions of the flutter tool.
+if (NOT DEFINED FLUTTER_TARGET_PLATFORM)
+  set(FLUTTER_TARGET_PLATFORM "windows-x64")
+endif()
+
 # === Flutter Library ===
 set(FLUTTER_LIBRARY "${EPHEMERAL_DIR}/flutter_windows.dll")
 
@@ -29407,7 +29439,7 @@ add_custom_command(
   COMMAND ${CMAKE_COMMAND} -E env
     ${FLUTTER_TOOL_ENVIRONMENT}
     "${FLUTTER_ROOT}/packages/flutter_tools/bin/tool_backend.bat"
-      windows-x64 $<CONFIG>
+      ${FLUTTER_TARGET_PLATFORM} $<CONFIG>
   VERBATIM
 )
 add_custom_target(flutter_assemble DEPENDS
@@ -29744,14 +29776,14 @@ IDI_APP_ICON            ICON                    "resources\\app_icon.ico"
 // Version
 //
 
-#ifdef FLUTTER_BUILD_NUMBER
-#define VERSION_AS_NUMBER FLUTTER_BUILD_NUMBER
+#if defined(FLUTTER_VERSION_MAJOR) && defined(FLUTTER_VERSION_MINOR) && defined(FLUTTER_VERSION_PATCH) && defined(FLUTTER_VERSION_BUILD)
+#define VERSION_AS_NUMBER FLUTTER_VERSION_MAJOR,FLUTTER_VERSION_MINOR,FLUTTER_VERSION_PATCH,FLUTTER_VERSION_BUILD
 #else
-#define VERSION_AS_NUMBER 1,0,0
+#define VERSION_AS_NUMBER 1,0,0,0
 #endif
 
-#ifdef FLUTTER_BUILD_NAME
-#define VERSION_AS_STRING #FLUTTER_BUILD_NAME
+#if defined(FLUTTER_VERSION)
+#define VERSION_AS_STRING FLUTTER_VERSION
 #else
 #define VERSION_AS_STRING "1.0.0"
 #endif
@@ -30364,13 +30396,13 @@ publish_to: 'none'
 version: 1.0.0
 
 environment:
-  sdk: ">=2.19.0 <4.0.0"
-  flutter: ">=3.7.0"
+  sdk: ^3.6.0
+  flutter: ">=3.27.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  image_picker_platform_interface: ^2.8.0
+  image_picker_platform_interface: ^2.11.0
   image_picker_windows:
     # When depending on this package from a real application you should use:
     #   image_picker_windows: ^x.y.z
@@ -30378,7 +30410,7 @@ dependencies:
     # The example app is bundled with the plugin so we use a path dependency on
     # the parent directory to use the current plugin's version.
     path: ..
-  mime: ^1.0.4
+  mime: ^2.0.0
   video_player: ^2.1.4
 
 dev_dependencies:
@@ -30535,6 +30567,17 @@ void main() {
         await expectLater(
             plugin.getVideo(source: ImageSource.camera), throwsStateError);
       });
+
+      test('getMultiVideoWithOptions passes the accepted type groups correctly',
+          () async {
+        await plugin.getMultiVideoWithOptions();
+
+        final VerificationResult result = verify(
+            mockFileSelectorPlatform.openFiles(
+                acceptedTypeGroups: captureAnyNamed('acceptedTypeGroups')));
+        expect(capturedTypeGroups(result)[0].extensions,
+            ImagePickerWindows.videoFormats);
+      });
     });
 
     group('media', () {
@@ -30598,7 +30641,7 @@ class FakeCameraDelegate extends ImagePickerCameraDelegate {
 ============================================================
 FILE: windows/flutter/ephemeral/.plugin_symlinks/image_picker_windows/test/image_picker_windows_test.mocks.dart
 ============================================================
-// Mocks generated by Mockito 5.4.0 from annotations
+// Mocks generated by Mockito 5.4.4 from annotations
 // in image_picker_windows/test/image_picker_windows_test.dart.
 // Do not manually edit this file.
 
@@ -30613,6 +30656,8 @@ import 'package:mockito/mockito.dart' as _i1;
 // ignore_for_file: avoid_redundant_argument_values
 // ignore_for_file: avoid_setters_without_getters
 // ignore_for_file: comment_references
+// ignore_for_file: deprecated_member_use
+// ignore_for_file: deprecated_member_use_from_same_package
 // ignore_for_file: implementation_imports
 // ignore_for_file: invalid_use_of_visible_for_testing_member
 // ignore_for_file: prefer_const_constructors
@@ -30647,6 +30692,7 @@ class MockFileSelectorPlatform extends _i1.Mock
         ),
         returnValue: _i3.Future<_i2.XFile?>.value(),
       ) as _i3.Future<_i2.XFile?>);
+
   @override
   _i3.Future<List<_i2.XFile>> openFiles({
     List<_i2.XTypeGroup>? acceptedTypeGroups,
@@ -30665,6 +30711,7 @@ class MockFileSelectorPlatform extends _i1.Mock
         ),
         returnValue: _i3.Future<List<_i2.XFile>>.value(<_i2.XFile>[]),
       ) as _i3.Future<List<_i2.XFile>>);
+
   @override
   _i3.Future<String?> getSavePath({
     List<_i2.XTypeGroup>? acceptedTypeGroups,
@@ -30685,6 +30732,24 @@ class MockFileSelectorPlatform extends _i1.Mock
         ),
         returnValue: _i3.Future<String?>.value(),
       ) as _i3.Future<String?>);
+
+  @override
+  _i3.Future<_i2.FileSaveLocation?> getSaveLocation({
+    List<_i2.XTypeGroup>? acceptedTypeGroups,
+    _i2.SaveDialogOptions? options = const _i2.SaveDialogOptions(),
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getSaveLocation,
+          [],
+          {
+            #acceptedTypeGroups: acceptedTypeGroups,
+            #options: options,
+          },
+        ),
+        returnValue: _i3.Future<_i2.FileSaveLocation?>.value(),
+      ) as _i3.Future<_i2.FileSaveLocation?>);
+
   @override
   _i3.Future<String?> getDirectoryPath({
     String? initialDirectory,
@@ -30701,6 +30766,7 @@ class MockFileSelectorPlatform extends _i1.Mock
         ),
         returnValue: _i3.Future<String?>.value(),
       ) as _i3.Future<String?>);
+
   @override
   _i3.Future<List<String>> getDirectoryPaths({
     String? initialDirectory,
@@ -30735,6 +30801,11 @@ Alexandre Zollinger Chohfi <alzollin@microsoft.com>
 ============================================================
 FILE: windows/flutter/ephemeral/.plugin_symlinks/image_picker_windows/CHANGELOG.md
 ============================================================
+## 0.2.2
+
+* Adds support for `getMultiVideoWithOptions`.
+* Updates minimum supported SDK version to Flutter 3.27/Dart 3.6.
+
 ## 0.2.1+1
 
 * Adds pub topics to package metadata.
@@ -30819,11 +30890,11 @@ name: image_picker_windows
 description: Windows platform implementation of image_picker
 repository: https://github.com/flutter/packages/tree/main/packages/image_picker/image_picker_windows
 issue_tracker: https://github.com/flutter/flutter/issues?q=is%3Aissue+is%3Aopen+label%3A%22p%3A+image_picker%22
-version: 0.2.1+1
+version: 0.2.2
 
 environment:
-  sdk: ">=2.19.0 <4.0.0"
-  flutter: ">=3.7.0"
+  sdk: ^3.6.0
+  flutter: ">=3.27.0"
 
 flutter:
   plugin:
@@ -30837,13 +30908,13 @@ dependencies:
   file_selector_windows: ^0.9.0
   flutter:
     sdk: flutter
-  image_picker_platform_interface: ^2.8.0
+  image_picker_platform_interface: ^2.11.0
 
 dev_dependencies:
   build_runner: ^2.1.5
   flutter_test:
     sdk: flutter
-  mockito: 5.4.1
+  mockito: ^5.4.4
 
 topics:
   - image-picker
@@ -30880,7 +30951,7 @@ However, if you `import` this package to use any of its APIs directly, you
 should add it to your `pubspec.yaml` as usual.
 
 [1]: https://pub.dev/packages/image_picker
-[2]: https://flutter.dev/docs/development/packages-and-plugins/developing-packages#endorsed-federated-plugin
+[2]: https://flutter.dev/to/endorsed-federated-plugin
 
 
 ============================================================
@@ -36577,6 +36648,7 @@ dependencies:
   file_picker: ^10.3.2
   cupertino_icons: ^1.0.6
   flutter_native_splash: ^2.4.6
+  fluttertoast: ^8.2.4
 
 dev_dependencies:
   flutter_test:
@@ -36608,412 +36680,38 @@ flutter_native_splash:
 ============================================================
 FILE: README.md
 ============================================================
-# 🛍️ Fake Store App - تطبيق المتجر الإلكتروني
+# 🛒 Fake Store App
 
-[![Flutter](https://img.shields.io/badge/Flutter-3.8+-blue.svg)](https://flutter.dev/)
-[![Dart](https://img.shields.io/badge/Dart-3.8+-blue.svg)](https://dart.dev/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+## 📌 Project Description
+Fake Store App is a fully functional e-commerce mobile application built with **Flutter** and **Dart**, designed to demonstrate advanced state management, API integration, and responsive UI techniques. The application fetches real product data from a public API, supports browsing by categories, product details view, adding items to a shopping cart, and managing favorites.  
+The app is optimized for performance using **lazy loading**, **image caching**, and **state persistence**, providing a smooth shopping experience across devices.
 
-## 📱 نظرة عامة | Overview
+---
 
-تطبيق Flutter متكامل لمتجر إلكتروني مزيف يوفر تجربة تسوق واقعية مع ميزات متقدمة مثل المصادقة، إدارة المنتجات، السلة، المفضلة، والبحث.
+## 🛠️ Tech Stack
+- **Flutter** — Cross-platform mobile app development framework.
+- **Dart** — Programming language for Flutter.
+- **Dio / HTTP** — Networking and API requests.
+- **Cubit / Bloc** — State management and event-driven architecture.
+- **CachedNetworkImage** — Efficient image loading with caching.
+- **SharedPreferences** — Local storage for offline persistence.
+- **Responsive UI** — Adaptive layouts for multiple screen sizes.
 
-A comprehensive Flutter fake store application that provides a realistic shopping experience with advanced features including authentication, product management, cart, favorites, and search functionality.
+---
 
-## ✨ الميزات الرئيسية | Key Features
+## 🚀 Features
+- Fetch and display products dynamically from REST API.
+- Browse products by categories.
+- Detailed product pages with image, price, and description.
+- Add/remove products from the shopping cart.
+- Manage favorites locally with instant UI updates.
+- Image caching for faster loading.
+- Persistent cart and favorites even after app restart.
+- Clean and modular code structure for scalability.
 
-### 🔐 نظام المصادقة | Authentication System
-- تسجيل الدخول وإنشاء حساب جديد
-- إدارة الجلسات والمستخدمين
-- حماية البيانات الشخصية
+---
 
-### 🛒 إدارة المتجر | Store Management
-- عرض المنتجات مع التصنيفات
-- إضافة منتجات جديدة
-- إدارة المخزون والمنتجات
-
-### 🛍️ تجربة التسوق | Shopping Experience
-- سلة التسوق التفاعلية
-- قائمة المفضلة
-- البحث المتقدم مع الفلاتر
-- تفاصيل المنتجات
-
-### 🎨 واجهة المستخدم | User Interface
-- تصميم عصري وجذاب
-- دعم الوضع المظلم والفاتح
-- تجاوب كامل مع جميع الأجهزة
-- رسوم متحركة سلسة
-
-### 🔍 البحث والتصفية | Search & Filtering
-- بحث ذكي في المنتجات
-- فلترة متقدمة حسب الفئة والسعر
-- اقتراحات البحث
-
-## 🏗️ البنية التقنية | Technical Architecture
-
-### 📁 هيكل المشروع | Project Structure
-```
-lib/
-├── core/           # الملفات الأساسية
-├── cubit/          # إدارة الحالة (BLoC Pattern)
-├── data/           # نماذج البيانات والمستودعات
-├── presentation/   # واجهات المستخدم
-└── widgets/        # العناصر القابلة لإعادة الاستخدام
-```
-
-### 🛠️ التقنيات المستخدمة | Technologies Used
-- **Flutter 3.8+** - إطار العمل الرئيسي
-- **BLoC Pattern** - إدارة الحالة
-- **HTTP & Dio** - طلبات الشبكة
-- **Shared Preferences** - التخزين المحلي
-- **Cached Network Image** - تخزين الصور مؤقتاً
-- **Image Picker** - اختيار الصور
-- **Shimmer** - تأثيرات التحميل
-
-## 🚀 التثبيت والتشغيل | Installation & Setup
-
-### المتطلبات الأساسية | Prerequisites
-- Flutter SDK 3.8.0 أو أحدث
-- Dart SDK 3.8.0 أو أحدث
-- Android Studio / VS Code
-- Git
-
-### خطوات التثبيت | Installation Steps
-
-1. **استنساخ المشروع | Clone the repository**
+## 📦 Installation & Setup
+1. Clone the repository:
    ```bash
    git clone https://github.com/yourusername/fake_store_app.git
-   cd fake_store_app
-   ```
-
-2. **تثبيت التبعيات | Install dependencies**
-   ```bash
-   flutter pub get
-   ```
-
-3. **تشغيل التطبيق | Run the app**
-   ```bash
-   flutter run
-   ```
-
-### إعدادات إضافية | Additional Setup
-
-#### Android
-```bash
-flutter build apk --release
-```
-
-#### iOS
-```bash
-flutter build ios --release
-```
-
-#### Web
-```bash
-flutter build web --release
-```
-
-## 📱 الميزات التفصيلية | Detailed Features
-
-### 🏠 الشاشة الرئيسية | Home Screen
-- عرض المنتجات المميزة
-- التنقل بين التصنيفات
-- البحث السريع
-- إشعارات المستخدم
-
-### 🔍 شاشة البحث | Search Screen
-- شريط البحث الذكي
-- فلترة متقدمة
-- اقتراحات البحث
-- عرض النتائج بتصميم شبكي
-
-### 🛒 سلة التسوق | Shopping Cart
-- إضافة/إزالة المنتجات
-- تحديث الكميات
-- حساب المجموع
-- حفظ السلة محلياً
-
-### ❤️ المفضلة | Favorites
-- حفظ المنتجات المفضلة
-- إدارة القائمة
-- مزامنة مع الحساب
-
-### ⚙️ الإعدادات | Settings
-- تبديل المظهر (فاتح/مظلم)
-- إدارة الحساب
-- تفضيلات التطبيق
-- تسجيل الخروج
-
-## 🧪 الاختبار | Testing
-
-### تشغيل الاختبارات | Run Tests
-```bash
-# اختبارات الوحدة
-flutter test
-
-# اختبارات التكامل
-flutter test integration_test/
-```
-
-### تغطية الاختبارات | Test Coverage
-```bash
-flutter test --coverage
-genhtml coverage/lcov.info -o coverage/html
-```
-
-## 📦 البناء والنشر | Build & Deploy
-
-### Android APK
-```bash
-flutter build apk --release
-```
-
-### Android App Bundle
-```bash
-flutter build appbundle --release
-```
-
-### iOS
-```bash
-flutter build ios --release
-```
-
-### Web
-```bash
-flutter build web --release
-```
-
-## 🤝 المساهمة | Contributing
-
-نرحب بمساهماتكم! يرجى اتباع الخطوات التالية:
-
-1. Fork المشروع
-2. إنشاء فرع للميزة الجديدة (`git checkout -b feature/AmazingFeature`)
-3. Commit التغييرات (`git commit -m 'Add some AmazingFeature'`)
-4. Push إلى الفرع (`git push origin feature/AmazingFeature`)
-5. فتح Pull Request
-
-## 📄 الترخيص | License
-
-هذا المشروع مرخص تحت رخصة MIT - راجع ملف [LICENSE](LICENSE) للتفاصيل.
-
-## 📞 الدعم والاتصال | Support & Contact
-
-- **المطور | Developer**: [اسمك]
-- **البريد الإلكتروني | Email**: [your.email@example.com]
-- **GitHub**: [https://github.com/yourusername](https://github.com/yourusername)
-
-## 🙏 الشكر والتقدير | Acknowledgments
-
-- فريق Flutter للعمل المذهل
-- مجتمع Flutter العربي
-- جميع المساهمين في المشروع
-
----
-
-**Made with ❤️ using Flutter**
-
----
-
-# 🛍️ Fake Store App - E-commerce Application
-
-[![Flutter](https://img.shields.io/badge/Flutter-3.8+-blue.svg)](https://flutter.dev/)
-[![Dart](https://img.shields.io/badge/Dart-3.8+-blue.svg)](https://dart.dev/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-
-## 📱 Overview
-
-A comprehensive Flutter fake store application that provides a realistic shopping experience with advanced features including authentication, product management, cart, favorites, and search functionality.
-
-## ✨ Key Features
-
-### 🔐 Authentication System
-- Login and registration
-- Session management
-- User data protection
-
-### 🛒 Store Management
-- Product display with categories
-- Add new products
-- Inventory management
-
-### 🛍️ Shopping Experience
-- Interactive shopping cart
-- Favorites list
-- Advanced search with filters
-- Product details
-
-### 🎨 User Interface
-- Modern and attractive design
-- Dark/Light theme support
-- Full responsiveness
-- Smooth animations
-
-### 🔍 Search & Filtering
-- Smart product search
-- Advanced filtering by category and price
-- Search suggestions
-
-## 🏗️ Technical Architecture
-
-### 📁 Project Structure
-```
-lib/
-├── core/           # Core files
-├── cubit/          # State management (BLoC Pattern)
-├── data/           # Data models and repositories
-├── presentation/   # User interfaces
-└── widgets/        # Reusable components
-```
-
-### 🛠️ Technologies Used
-- **Flutter 3.8+** - Main framework
-- **BLoC Pattern** - State management
-- **HTTP & Dio** - Network requests
-- **Shared Preferences** - Local storage
-- **Cached Network Image** - Image caching
-- **Image Picker** - Image selection
-- **Shimmer** - Loading effects
-
-## 🚀 Installation & Setup
-
-### Prerequisites
-- Flutter SDK 3.8.0 or later
-- Dart SDK 3.8.0 or later
-- Android Studio / VS Code
-- Git
-
-### Installation Steps
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/yourusername/fake_store_app.git
-   cd fake_store_app
-   ```
-
-2. **Install dependencies**
-   ```bash
-   flutter pub get
-   ```
-
-3. **Run the app**
-   ```bash
-   flutter run
-   ```
-
-### Additional Setup
-
-#### Android
-```bash
-flutter build apk --release
-```
-
-#### iOS
-```bash
-flutter build ios --release
-```
-
-#### Web
-```bash
-flutter build web --release
-```
-
-## 📱 Detailed Features
-
-### 🏠 Home Screen
-- Featured products display
-- Category navigation
-- Quick search
-- User notifications
-
-### 🔍 Search Screen
-- Smart search bar
-- Advanced filtering
-- Search suggestions
-- Grid results display
-
-### 🛒 Shopping Cart
-- Add/remove products
-- Update quantities
-- Calculate totals
-- Local cart persistence
-
-### ❤️ Favorites
-- Save favorite products
-- List management
-- Account synchronization
-
-### ⚙️ Settings
-- Theme switching (light/dark)
-- Account management
-- App preferences
-- Logout
-
-## 🧪 Testing
-
-### Run Tests
-```bash
-# Unit tests
-flutter test
-
-# Integration tests
-flutter test integration_test/
-```
-
-### Test Coverage
-```bash
-flutter test --coverage
-genhtml coverage/lcov.info -o coverage/html
-```
-
-## 📦 Build & Deploy
-
-### Android APK
-```bash
-flutter build apk --release
-```
-
-### Android App Bundle
-```bash
-flutter build appbundle --release
-```
-
-### iOS
-```bash
-flutter build ios --release
-```
-
-### Web
-```bash
-flutter build web --release
-```
-
-## 🤝 Contributing
-
-We welcome contributions! Please follow these steps:
-
-1. Fork the project
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 📞 Support & Contact
-
-- **Developer**: [Your Name]
-- **Email**: [your.email@example.com]
-- **GitHub**: [https://github.com/yourusername](https://github.com/yourusername)
-
-## 🙏 Acknowledgments
-
-- Flutter team for the amazing work
-- Arabic Flutter community
-- All project contributors
-
----
-
-**Made with ❤️ using Flutter**
