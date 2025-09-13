@@ -1,4 +1,4 @@
-🛒 Fake Store App
+🛒 Jewelry_Store
 📌 Overview
 
 Fake Store App is a fully–fledged e-commerce mobile application built with Flutter and Dart.
