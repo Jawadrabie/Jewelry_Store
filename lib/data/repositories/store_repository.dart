@@ -1,4 +1,5 @@
 // lib/data/repositories/store_repository.dart
+import 'dart:io';
 import 'package:dio/dio.dart';
 import '../models/category_model.dart';
 import '../models/product_model.dart';
@@ -41,22 +42,19 @@ class StoreRepository {
     required ProductUploadRequest request,
     required String token,
   }) async {
-    final files = <MultipartFile>[];
-    if (request.files.isNotEmpty) {
-      for (final f in request.files) {
-        files.add(
-          await MultipartFile.fromFile(
-            f.path,
-            filename: f.path.split('/').last,
-          ),
-        );
-      }
-    } else if (request.file != null) {
-      files.add(
-        await MultipartFile.fromFile(
-          request.file!.path,
-          filename: request.file!.path.split('/').last,
-        ),
+    // API expects a single file only, so we take the first file
+    File? fileToUpload;
+    if (request.file != null) {
+      fileToUpload = request.file;
+    } else if (request.files.isNotEmpty) {
+      fileToUpload = request.files.first;
+    }
+
+    MultipartFile? multipartFile;
+    if (fileToUpload != null) {
+      multipartFile = await MultipartFile.fromFile(
+        fileToUpload.path,
+        filename: fileToUpload.path.split('/').last,
       );
     }
 
@@ -67,7 +65,7 @@ class StoreRepository {
       'ProductWeight': request.weight,
       'ProductPrice': request.price.toString(),
       // API expects a single file as 'ProductFile'
-      if (files.isNotEmpty) 'ProductFile': files.first,
+      if (multipartFile != null) 'ProductFile': multipartFile,
     });
 
     await _dio.post(
@@ -77,29 +75,38 @@ class StoreRepository {
     );
   }
 
-  // Create order: backend requires several fields; send empty strings if missing.
+  // Create order: API expects JSON body with specific structure
   Future<Response> addOrder({
-    required num totalAmount,
-    required List<String> products,
+    required List<Map<String, dynamic>> products,
     required String token,
-    String userId = '1',
-    String status = '',
-    String shippingAddress = '',
-    String paymentMethod = '',
-    required String orderDate,
   }) async {
+    // Get current date in YYYY-MM-DD format
+    final today = DateTime.now();
+    final orderDate =
+        '${today.year.toString().padLeft(4, '0')}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+
+    final orderData = {
+      'UserID': 1,
+      'OrderDate': orderDate,
+      'Status': 'pending',
+      'TotalAmount': products.fold<int>(
+        0,
+        (sum, product) => sum + ((product['PriceAtPurchase'] as num?)?.toInt() ?? 0),
+      ),
+      'ShippingAddress': 'syria',
+      'PaymentMethod': 'pending',
+      'Products': products
+    };
+
     return _dio.post(
       '/addorder',
-      queryParameters: {
-        'UserID': userId,
-        'Status': status,
-        'ShippingAddress': shippingAddress,
-        'PaymentMethod': paymentMethod,
-        'OrderDate': orderDate,
-        'TotalAmount': totalAmount,
-        'Products': products, // as array
-      },
-      options: Options(headers: {'Authorization': 'Bearer $token'}),
+      data: orderData,
+      options: Options(
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      ),
     );
   }
 }

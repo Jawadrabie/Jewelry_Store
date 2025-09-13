@@ -332,57 +332,61 @@ class ProductDetailsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   // الوزن
-                  Row(
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.scale, color: colorScheme.primary, size: 18),
-                      const SizedBox(width: 8),
-                      Text(
-                        "الوزن: ${product.weight} غرام",
-                        style: TextStyle(
-                          color: isDark ? Colors.grey[300] : Colors.grey[700],
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      if (product.karat != null) ...[
-                        const SizedBox(width: 16),
-                        Icon(Icons.grade, color: colorScheme.primary, size: 18),
-                        const SizedBox(width: 8),
-                        Text(
-                          "العيار: ${product.karat}K",
-                          style: TextStyle(
-                            color: isDark ? Colors.grey[300] : Colors.grey[700],
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
+                      Row(
+                        children: [
+                          Icon(Icons.scale, color: colorScheme.primary, size: 18),
+                          const SizedBox(width: 8),
+                          Text(
+                            "الوزن: ${product.weight} غرام",
+                            style: TextStyle(
+                              color: isDark ? Colors.grey[300] : Colors.grey[700],
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      // عرض العيار (Karat)
+                      Row(
+                        children: [
+                          Icon(Icons.grade, color: colorScheme.primary, size: 18),
+                          const SizedBox(width: 8),
+                          Text(
+                            "العيار: ${product.karat ?? 'N/A'}",
+                            style: TextStyle(
+                              color: isDark ? Colors.grey[300] : Colors.grey[700],
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
-                  if (product.smithing > 0) ...[
-                    const SizedBox(height: 12),
-                    // خصم الصياغة
-                    Row(
-                      children: [
-                        Icon(Icons.local_offer, color: Colors.red, size: 18),
-                        const SizedBox(width: 8),
-                        Builder(
-                          builder: (_) {
-                            final double smithingValue =
-                                (product.price * (product.smithing / 100.0));
-                            return Text(
-                              "قيمة الصياغة: \$ ${smithingValue.toStringAsFixed(2)}",
-                              style: const TextStyle(
-                                color: Colors.red,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ],
+                  // قيمة الصياغة
+                  Row(
+                    children: [
+                      Icon(Icons.local_offer, color: colorScheme.primary, size: 18),
+                      const SizedBox(width: 8),
+                      Builder(
+                        builder: (_) {
+                          final double smithingValue = (product.price * (product.smithing / 100.0));
+                          return Text(
+                            "قيمة الصياغة: ${product.smithing}% (\$${smithingValue.toStringAsFixed(2)})",
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),

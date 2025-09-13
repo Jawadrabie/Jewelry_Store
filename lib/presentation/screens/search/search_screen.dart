@@ -471,7 +471,9 @@ class _SearchScreenState extends State<SearchScreen> {
                           ? const Text('ابدأ بالبحث لعرض المنتجات')
                           : const Text('لا توجد نتائج'),
                     )
-                  : ProductsGrid(products: _results),
+                  : SingleChildScrollView(
+                      child: ProductsGrid(products: _results),
+                    ),
             ),
           ],
         ),

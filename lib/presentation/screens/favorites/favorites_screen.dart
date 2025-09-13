@@ -5,20 +5,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../../../cubit/favorite/favorite_cubit.dart';
 import '../product_details/product_details_screen.dart';
 
-class FavoritesScreen extends StatefulWidget {
+class FavoritesScreen extends StatelessWidget {
   const FavoritesScreen({super.key});
-
-  @override
-  State<FavoritesScreen> createState() => _FavoritesScreenState();
-}
-
-class _FavoritesScreenState extends State<FavoritesScreen> {
-  @override
-  void initState() {
-    super.initState();
-    // Load favorites data when screen opens
-    context.read<FavoriteCubit>().loadFavorites();
-  }
 
   @override
   Widget build(BuildContext context) {

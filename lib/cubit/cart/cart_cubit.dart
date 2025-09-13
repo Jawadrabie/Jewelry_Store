@@ -113,30 +113,24 @@ class CartCubit extends Cubit<List<CartItemModel>> {
 
       final grandTotal = goldSubtotal + smithingTotal - discount;
 
-      // Products param: send as array of "id:qty"
+      // Products param: send as array of objects with ProductID, Quantity, PriceAtPurchase
       final productsArray = state
-          .map((e) => '${e.product.productId}:${e.quantity}')
+          .map(
+            (e) => {
+              'ProductID': e.product.productId,
+              'Quantity': e.quantity,
+              'PriceAtPurchase': (e.totalPrice * 100)
+                  .round(), // Convert to cents for API
+            },
+          )
           .toList();
 
       // Debug prints
-      final today = DateTime.now();
-      final orderDate =
-          '${today.year.toString().padLeft(4, '0')}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
-
       print(
         '[CHECKOUT] products=${productsArray.toString()} total=$grandTotal',
       );
 
-      final res = await _repo.addOrder(
-        totalAmount: grandTotal,
-        products: productsArray,
-        token: token,
-        userId: '',
-        status: '',
-        shippingAddress: '',
-        paymentMethod: '',
-        orderDate: orderDate,
-      );
+      final res = await _repo.addOrder(products: productsArray, token: token);
 
       // Clear cart on success if backend returns 200
       if (res.statusCode == 200) {

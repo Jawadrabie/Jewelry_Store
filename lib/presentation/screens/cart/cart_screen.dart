@@ -3,10 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../cubit/cart/cart_cubit.dart';
-import '../../ddd.dart';
-import '../product_details/product_details_screen.dart';
+import '../../../core/dialogs.dart';
 import '../auth/login_screen_.dart';
+import '../product_details/product_details_screen.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -16,13 +17,51 @@ class CartScreen extends StatefulWidget {
 }
 
 class _CartScreenState extends State<CartScreen> {
-  bool _isSubmitting = false;
+  bool _isPlacingOrder = false;
 
-  @override
-  void initState() {
-    super.initState();
-    // Load cart data when screen opens
-    context.read<CartCubit>().loadCart();
+  Future<bool> _checkLogin() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    return token != null && token.isNotEmpty;
+  }
+
+  Future<void> _handleCheckout() async {
+    final isLoggedIn = await _checkLogin();
+    if (!isLoggedIn) {
+      if (mounted) {
+        AppDialogs.showLoginRequiredDialog(
+          context: context,
+          onLoginPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const LoginScreen()),
+            );
+          },
+          content: 'الرجاء تسجيل الدخول للمتابعة في عملية الشراء.',
+        );
+      }
+      return;
+    }
+
+    setState(() => _isPlacingOrder = true);
+    try {
+      await context.read<CartCubit>().checkout();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('تم تقديم طلبك بنجاح'),backgroundColor: Colors.green,),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('حدث خطأ: ${e.toString()}')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isPlacingOrder = false);
+      }
+    }
   }
 
   @override
@@ -47,20 +86,26 @@ class _CartScreenState extends State<CartScreen> {
       (sum, item) => sum + item.totalSmithingCost,
     );
 
-    // حساب الخصم حسب الوزن
-    double discount = 0.0;
+    // منطق العروض (مطابق لـ OffersScreen)
+    // 60غ+: صياغة مجانية 100%
+    // 40غ+: خصم 50% على الصياغة
+    // 30غ+: خصم 10% على سعر الذهب
+    double smithingDiscount = 0.0;
+    double priceDiscount = 0.0;
     String discountText = '';
+
     if (totalWeight >= 60.0) {
-      discount = goldSubtotal * 0.15; // 15% خصم للوزن 60+ غرام
-      discountText = 'خصم 15% للوزن 60+ غرام';
+      smithingDiscount = smithingTotal; // صياغة مجانية
+      discountText = 'صياغة مجانية 100% للوزن 60+ غرام';
     } else if (totalWeight >= 40.0) {
-      discount = goldSubtotal * 0.12; // 12% خصم للوزن 40+ غرام
-      discountText = 'خصم 12% للوزن 40+ غرام';
+      smithingDiscount = smithingTotal * 0.5; // خصم 50% على الصياغة
+      discountText = 'خصم 50% على الصياغة للوزن 40+ غرام';
     } else if (totalWeight >= 30.0) {
-      discount = goldSubtotal * 0.10; // 10% خصم للوزن 30+ غرام
-      discountText = 'خصم 10% للوزن 30+ غرام';
+      priceDiscount = goldSubtotal * 0.10; // خصم 10% على السعر
+      discountText = 'خصم 10% على السعر للوزن 30+ غرام';
     }
 
+    final double discount = smithingDiscount + priceDiscount;
     final grandTotal = goldSubtotal + smithingTotal - discount;
 
     return Scaffold(
@@ -132,9 +177,9 @@ class _CartScreenState extends State<CartScreen> {
                     margin: const EdgeInsets.all(16),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surface,
+                      color: Colors.green.shade100,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Theme.of(context).dividerColor),
+                      border: Border.all(color: Colors.green.shade300),
                     ),
                     child: Row(
                       children: [
@@ -142,7 +187,7 @@ class _CartScreenState extends State<CartScreen> {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primary,
+                            color: Colors.green.shade600,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: const Icon(
@@ -158,17 +203,19 @@ class _CartScreenState extends State<CartScreen> {
                             children: [
                               Text(
                                 discountText,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface,
                                 ),
                               ),
                               Text(
                                 'وفر \$${discount.toStringAsFixed(2)}',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Theme.of(context).colorScheme.primary,
+                                  color: Colors.green.shade700,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -182,7 +229,11 @@ class _CartScreenState extends State<CartScreen> {
                   child: ListView.separated(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     itemCount: cart.length,
-                    separatorBuilder: (_, __) => const Divider(),
+                    separatorBuilder: (_, __) => Divider(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.outline.withOpacity(0.2),
+                    ),
                     itemBuilder: (context, index) {
                       final cartItem = cart[index];
                       final product = cartItem.product;
@@ -204,7 +255,9 @@ class _CartScreenState extends State<CartScreen> {
                             color: Theme.of(context).colorScheme.surface,
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: Theme.of(context).dividerColor,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.outline.withOpacity(0.2),
                             ),
                           ),
                           child: Row(
@@ -244,9 +297,11 @@ class _CartScreenState extends State<CartScreen> {
                                         color: Theme.of(
                                           context,
                                         ).colorScheme.surfaceVariant,
-                                        child: const Icon(
+                                        child: Icon(
                                           Icons.error,
-                                          color: Colors.grey,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurfaceVariant,
                                         ),
                                       ),
                                 ),
@@ -259,19 +314,24 @@ class _CartScreenState extends State<CartScreen> {
                                   children: [
                                     Text(
                                       product.name,
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodyLarge,
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurface,
+                                      ),
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
                                       '\$${product.price.toStringAsFixed(2)} × ${cartItem.quantity}',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.w600,
-                                          ),
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurface,
+                                      ),
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
@@ -341,7 +401,7 @@ class _CartScreenState extends State<CartScreen> {
                                           border: Border.all(
                                             color: Theme.of(
                                               context,
-                                            ).dividerColor,
+                                            ).colorScheme.outline,
                                           ),
                                           borderRadius: BorderRadius.circular(
                                             4,
@@ -350,12 +410,13 @@ class _CartScreenState extends State<CartScreen> {
                                         child: Center(
                                           child: Text(
                                             '${cartItem.quantity}',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodyMedium
-                                                ?.copyWith(
-                                                  fontWeight: FontWeight.w600,
-                                                ),
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600,
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.onSurface,
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -416,9 +477,9 @@ class _CartScreenState extends State<CartScreen> {
                                       );
                                     },
                                     style: IconButton.styleFrom(
-                                      backgroundColor: Theme.of(
-                                        context,
-                                      ).colorScheme.surfaceVariant,
+                                      backgroundColor: Colors.red.withOpacity(
+                                        0.1,
+                                      ),
                                       minimumSize: const Size(32, 32),
                                       padding: EdgeInsets.zero,
                                     ),
@@ -438,7 +499,11 @@ class _CartScreenState extends State<CartScreen> {
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.surface,
                     border: Border(
-                      top: BorderSide(color: Theme.of(context).dividerColor),
+                      top: BorderSide(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.outline.withOpacity(0.2),
+                      ),
                     ),
                   ),
                   child: Column(
@@ -449,12 +514,18 @@ class _CartScreenState extends State<CartScreen> {
                         children: [
                           Text(
                             'سعر الذهب:',
-                            style: Theme.of(context).textTheme.bodyMedium,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
                           ),
                           Text(
                             '\$${goldSubtotal.toStringAsFixed(2)}',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(fontWeight: FontWeight.w600),
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
                           ),
                         ],
                       ),
@@ -466,12 +537,18 @@ class _CartScreenState extends State<CartScreen> {
                         children: [
                           Text(
                             'الصياغة:',
-                            style: Theme.of(context).textTheme.bodyMedium,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
                           ),
                           Text(
                             '\$${smithingTotal.toStringAsFixed(2)}',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(fontWeight: FontWeight.w600),
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
                           ),
                         ],
                       ),
@@ -483,12 +560,18 @@ class _CartScreenState extends State<CartScreen> {
                         children: [
                           Text(
                             'الوزن الإجمالي:',
-                            style: Theme.of(context).textTheme.bodyMedium,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
                           ),
                           Text(
                             '${totalWeight.toStringAsFixed(1)} غرام',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(fontWeight: FontWeight.w600),
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
                           ),
                         ],
                       ),
@@ -501,29 +584,29 @@ class _CartScreenState extends State<CartScreen> {
                           children: [
                             Text(
                               'الخصم:',
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary,
-                                  ),
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.green.shade700,
+                              ),
                             ),
                             Text(
                               '-\$${discount.toStringAsFixed(2)}',
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary,
-                                  ),
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green.shade700,
+                              ),
                             ),
                           ],
                         ),
                         const SizedBox(height: 8),
                       ],
 
-                      Divider(color: Theme.of(context).dividerColor),
+                      Divider(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.outline.withOpacity(0.2),
+                      ),
                       const SizedBox(height: 8),
 
                       // المجموع النهائي
@@ -532,16 +615,19 @@ class _CartScreenState extends State<CartScreen> {
                         children: [
                           Text(
                             'المجموع النهائي:',
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
                           ),
                           Text(
                             '\$${grandTotal.toStringAsFixed(2)}',
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.amber,
+                            ),
                           ),
                         ],
                       ),
@@ -552,85 +638,37 @@ class _CartScreenState extends State<CartScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.push(
+                          onPressed: _isPlacingOrder ? null : _handleCheckout,
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            backgroundColor: Theme.of(
                               context,
-                              MaterialPageRoute(builder: (_) => const ddd()),
-                            );
-                          },
-                          child: Icon(Icons.shopping_cart, size: 30),
-                          //   onPressed: _isSubmitting
-                          //       ? null
-                          //       : () async {
-                          //           setState(() {
-                          //             _isSubmitting = true;
-                          //           });
-                          //           try {
-                          //             final response = await context
-                          //                 .read<CartCubit>()
-                          //                 .checkout();
-                          //             if (response != null &&
-                          //                 response.statusCode == 200) {
-                          //               Fluttertoast.showToast(
-                          //                 msg: 'تم إرسال طلب الشراء بنجاح',
-                          //                 backgroundColor: Colors.green,
-                          //                 textColor: Colors.white,
-                          //               );
-                          //             }
-                          //           } catch (e) {
-                          //             final isAuth = e.toString().contains(
-                          //               'AUTH_REQUIRED',
-                          //             );
-                          //             if (isAuth) {
-                          //               _showLoginRequired(context);
-                          //             } else {
-                          //               Fluttertoast.showToast(
-                          //                 msg: e.toString().replaceFirst(
-                          //                   'Exception: ',
-                          //                   '',
-                          //                 ),
-                          //                 backgroundColor: Colors.red,
-                          //                 textColor: Colors.white,
-                          //               );
-                          //             }
-                          //           } finally {
-                          //             if (mounted) {
-                          //               setState(() {
-                          //                 _isSubmitting = false;
-                          //               });
-                          //             }
-                          //           }
-                          //         },
-                          //   style: ElevatedButton.styleFrom(
-                          //     padding: const EdgeInsets.symmetric(vertical: 16),
-                          //     backgroundColor: Theme.of(
-                          //       context,
-                          //     ).colorScheme.primary,
-                          //     foregroundColor: Theme.of(
-                          //       context,
-                          //     ).colorScheme.onPrimary,
-                          //     shape: RoundedRectangleBorder(
-                          //       borderRadius: BorderRadius.circular(8),
-                          //     ),
-                          //   ),
-                          //   child: _isSubmitting
-                          //       ? SizedBox(
-                          //           width: 22,
-                          //           height: 22,
-                          //           child: CircularProgressIndicator(
-                          //             strokeWidth: 2.5,
-                          //             valueColor: AlwaysStoppedAnimation(
-                          //               Theme.of(context).colorScheme.onPrimary,
-                          //             ),
-                          //           ),
-                          //         )
-                          //       : const Text(
-                          //           'إتمام الشراء',
-                          //           style: TextStyle(
-                          //             fontSize: 16,
-                          //             fontWeight: FontWeight.bold,
-                          //           ),
-                          //         ),
+                            ).colorScheme.primary,
+                            foregroundColor: Theme.of(
+                              context,
+                            ).colorScheme.onPrimary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: _isPlacingOrder
+                              ? SizedBox(
+                                  height: 22,
+                                  width: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    valueColor: AlwaysStoppedAnimation(
+                                      Theme.of(context).colorScheme.onPrimary,
+                                    ),
+                                  ),
+                                )
+                              : const Text(
+                                  'إتمام الشراء',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                         ),
                       ),
                     ],
@@ -638,32 +676,6 @@ class _CartScreenState extends State<CartScreen> {
                 ),
               ],
             ),
-    );
-  }
-
-  void _showLoginRequired(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('تسجيل الدخول مطلوب'),
-        content: const Text('يرجى تسجيل الدخول لإتمام عملية الشراء.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('إلغاء'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
-              );
-            },
-            child: const Text('تسجيل الدخول'),
-          ),
-        ],
-      ),
     );
   }
 }

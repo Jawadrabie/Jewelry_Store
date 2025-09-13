@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../cubit/add_product/product_add_cubit.dart';
 import '../../../cubit/add_product/product_add_state.dart';
 import '../../../data/models/product_upload_request.dart';
+import '../../../core/dialogs.dart';
 import '../auth/login_screen_.dart';
 
 class AddItemScreen extends StatefulWidget {
@@ -22,22 +23,19 @@ class _AddItemScreenState extends State<AddItemScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
-  final _priceCtrl = TextEditingController();
   final _weightCtrl = TextEditingController();
 
-  final List<File> _pickedFiles = [];
+  File? _pickedFile;
   bool _isUploading = false;
 
   Future<void> _pickFromGallery() async {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.image,
-      allowMultiple: true,
+      allowMultiple: false, // API expects single file only
     );
     if (result != null && result.files.isNotEmpty) {
       setState(() {
-        _pickedFiles.addAll(
-          result.files.where((f) => f.path != null).map((f) => File(f.path!)),
-        );
+        _pickedFile = File(result.files.first.path!);
       });
     }
   }
@@ -50,7 +48,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
     );
     if (xfile != null) {
       setState(() {
-        _pickedFiles.add(File(xfile.path));
+        _pickedFile = File(xfile.path);
       });
     }
   }
@@ -92,14 +90,22 @@ class _AddItemScreenState extends State<AddItemScreen> {
   void _onSubmit() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
-    print('Saved token:> ${prefs.getString('token')}');
 
-    if (token == null) {
-      _showLoginDialog();
+    if (token == null || token.isEmpty) {
+      AppDialogs.showLoginRequiredDialog(
+        context: context,
+        onLoginPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const LoginScreen()),
+          );
+        },
+        content: 'الرجاء تسجيل الدخول للمتابعة في رفع المنتج.',
+      );
       return;
     }
 
-    if (!_formKey.currentState!.validate() || _pickedFiles.isEmpty) {
+    if (!_formKey.currentState!.validate() || _pickedFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('الرجاء تعبئة جميع الحقول واختيار صورة')),
       );
@@ -113,46 +119,30 @@ class _AddItemScreenState extends State<AddItemScreen> {
     final request = ProductUploadRequest(
       name: _nameCtrl.text.trim(),
       description: _descCtrl.text.trim(),
-      price: double.parse(_priceCtrl.text.trim()),
+      price: 10.0,
       weight: _weightCtrl.text.trim(),
-      // API currently accepts a single file under 'ProductFile'
-      file: _pickedFiles.isNotEmpty ? _pickedFiles.first : null,
+      file: _pickedFile,
     );
 
     await context.read<ProductAddCubit>().addProduct(
       request: request,
       token: token,
     );
-    if (mounted)
+    
+    if (mounted) {
       setState(() {
         _isUploading = false;
       });
+    }
   }
 
-  void _showLoginDialog() {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('تسجيل الدخول مطلوب'),
-        content: const Text('الرجاء تسجيل الدخول للمتابعة في رفع المنتج.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('رجوع'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (_) => const AddItemScreen()),
-              );
-            },
-            child: const Text('تسجيل الدخول'),
-          ),
-        ],
-      ),
-    );
+  void _clearForm() {
+    _nameCtrl.clear();
+    _descCtrl.clear();
+    _weightCtrl.clear();
+    setState(() {
+      _pickedFile = null;
+    });
   }
 
   @override
@@ -163,7 +153,8 @@ class _AddItemScreenState extends State<AddItemScreen> {
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(const SnackBar(content: Text('تم رفع المنتج بنجاح')));
-          Navigator.pop(context);
+          // Clear form after successful upload
+          _clearForm();
         } else if (state is ProductAddFailure) {
           print('خطأ: ${state.error}');
           ScaffoldMessenger.of(
@@ -186,24 +177,7 @@ class _AddItemScreenState extends State<AddItemScreen> {
                     validator: (value) =>
                         value!.isEmpty ? 'هذا الحقل مطلوب' : null,
                   ),
-                  SizedBox(height: 10),
-                  TextFormField(
-                    controller: _descCtrl,
-                    decoration: const InputDecoration(labelText: 'الوصف'),
-                    validator: (value) =>
-                        value!.isEmpty ? 'هذا الحقل مطلوب' : null,
-                  ),
-                  SizedBox(height: 10),
-
-                  TextFormField(
-                    controller: _priceCtrl,
-                    decoration: const InputDecoration(labelText: 'السعر'),
-                    keyboardType: TextInputType.number,
-                    validator: (value) =>
-                        value!.isEmpty ? 'هذا الحقل مطلوب' : null,
-                  ),
-                  SizedBox(height: 10),
-
+                  const SizedBox(height: 10),
                   TextFormField(
                     controller: _weightCtrl,
                     decoration: const InputDecoration(labelText: 'الوزن'),
@@ -211,61 +185,61 @@ class _AddItemScreenState extends State<AddItemScreen> {
                         value!.isEmpty ? 'هذا الحقل مطلوب' : null,
                   ),
                   const SizedBox(height: 10),
+                  TextFormField(
+                    controller: _descCtrl,
+                    decoration: const InputDecoration(labelText: 'الوصف'),
+                    maxLines: 3,
+                    validator: (value) =>
+                        value!.isEmpty ? 'هذا الحقل مطلوب' : null,
+                  ),
+                  const SizedBox(height: 10),
                   OutlinedButton.icon(
                     onPressed: _showPickSource,
                     icon: const Icon(Icons.upload_file),
-                    label: const Text('رفع الصور'),
+                    label: const Text('رفع الصورة'),
                   ),
 
                   const SizedBox(height: 12),
-                  // معاينة الصور المختارة
-                  if (_pickedFiles.isNotEmpty)
+                  // معاينة الصورة المختارة
+                  if (_pickedFile != null)
                     SizedBox(
                       height: 100,
-                      child: ListView.separated(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: _pickedFiles.length,
-                        separatorBuilder: (_, __) => const SizedBox(width: 8),
-                        itemBuilder: (context, i) {
-                          final file = _pickedFiles[i];
-                          return Stack(
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(10),
-                                child: Image.file(
-                                  file,
-                                  width: 100,
-                                  height: 100,
-                                  fit: BoxFit.cover,
+                      child: Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.file(
+                              _pickedFile!,
+                              width: 100,
+                              height: 100,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          Positioned(
+                            top: 4,
+                            right: 4,
+                            child: GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _pickedFile = null;
+                                });
+                              },
+                              child: Container(
+                                width: 24,
+                                height: 24,
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.6),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.close,
+                                  color: Colors.white,
+                                  size: 16,
                                 ),
                               ),
-                              Positioned(
-                                top: 4,
-                                right: 4,
-                                child: GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      _pickedFiles.removeAt(i);
-                                    });
-                                  },
-                                  child: Container(
-                                    width: 24,
-                                    height: 24,
-                                    decoration: BoxDecoration(
-                                      color: Colors.black.withOpacity(0.6),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Icon(
-                                      Icons.close,
-                                      color: Colors.white,
-                                      size: 16,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          );
-                        },
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   const SizedBox(height: 24),
@@ -294,7 +268,6 @@ class _AddItemScreenState extends State<AddItemScreen> {
   void dispose() {
     _nameCtrl.dispose();
     _descCtrl.dispose();
-    _priceCtrl.dispose();
     _weightCtrl.dispose();
     super.dispose();
   }
